@@ -3,8 +3,6 @@ import socket
 import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
-import threading
-import socket
 from authentication import authenticate_user
 from db_connection import get_connection
 from superadmin_panel import open_superadmin_panel
