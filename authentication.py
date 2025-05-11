@@ -14,28 +14,27 @@ def authenticate_user(action, username, password):
         cur = conn.cursor()
 
         if action == "login":
-            cur.execute("SELECT username, password FROM userdata WHERE username = ?", (username,))
+            cur.execute("""SELECT u.username, u.password, u.organization, o.org_id, o.org_name, o.type
+                           FROM userdata u
+                           LEFT JOIN ORGANIZATION o ON u.organization = o.org_name
+                           WHERE u.username = ?;
+                        """, (username,))
             user_record = cur.fetchone()
-            if user_record:  
-                stored_hash = user_record[1]  
+            if user_record:
+                stored_hash = user_record[1]
                 if bcrypt.checkpw(password.encode('utf-8'), stored_hash.encode('utf-8')):
+                    organization = user_record[2]  # This is where we get the organization
+                    org_id = user_record[3] if user_record[3] else 0  # If org_id is None, set to 0
                     if is_superadmin(username):
                         return "SUPERADMIN_LOGIN_SUCCESS"
                     else:
-                        return "LOGIN_SUCCESS"
+                        return ("LOGIN_SUCCESS", organization, org_id)
                 else:
                     return "Login failed!"
             else:
                 return "User not found!"
 
-        elif action == "register":
-            cur.execute("SELECT * FROM userdata WHERE username = ?", (username,))
-            if cur.fetchall():
-                return "Username already exists!"
-            else:
-                cur.execute("INSERT INTO userdata (username, password) VALUES (?, ?)", (username, hash_password(password)))
-                conn.commit()
-                return "Registration successful!"
         return "Invalid action"
     except Exception as e:
         return f"Error: {e}"
+

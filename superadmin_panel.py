@@ -26,7 +26,7 @@ def open_superadmin_panel(root):
             organizations = fetch_organizations()
             for org_id, org_name in organizations:
                 btn = ttk.Button(orgs_tab, text=f"Manage: {org_name}",
-                                command=lambda oid=org_id, oname=org_name: open_president_panel(root, oid, oname))
+                                command=lambda oid=org_id, oname=org_name: open_president_panel(root, True, oname, oid))
                 btn.pack(pady=5, anchor="w", padx=10)
         except Exception as e:
             messagebox.showerror("Error", f"Failed to load organizations: {e}")
@@ -36,7 +36,7 @@ def open_superadmin_panel(root):
     
     # User List Tab
     user_tab = ttk.Frame(tab)
-    tab.add(user_tab, text='User Management')
+    tab.add(user_tab, text='View Users')
     
     # Create User Tab
     create_tab = ttk.Frame(tab)
@@ -51,14 +51,14 @@ def open_superadmin_panel(root):
     list_frame.pack(pady=20, fill="both", expand=True)
     
     # Create treeview for users
-    tree = ttk.Treeview(list_frame, columns=("ID", "Username", "Member Id", "Org"), show="headings")
+    tree = ttk.Treeview(list_frame, columns=("ID", "Username", "Organization"), show="headings")
     tree.heading("ID", text="ID")
     tree.heading("Username", text="Username")
-    tree.heading("Member Id", text="Member ID")
+    tree.heading("Organization", text="Organization")
     # tree.heading("Org", text="Username")
     tree.column("ID", width=50)
     tree.column("Username", width=200)
-    tree.column("Member Id", width=50)
+    tree.column("Organization", width=50)
     # tree.column("Org", width=200)
     
     scrollbar = ttk.Scrollbar(list_frame, orient="vertical", command=tree.yview)
@@ -77,7 +77,7 @@ def open_superadmin_panel(root):
             cur = conn.cursor()
             
             # Get all users except superadmin
-            cur.execute("SELECT username, organization FROM userdata WHERE username != 'superadmin'")
+            cur.execute("SELECT user_id, username, organization FROM userdata WHERE username != 'superadmin'")
             
             for user in cur:
                 tree.insert("", "end", values=user)
@@ -249,52 +249,20 @@ def open_superadmin_panel(root):
     org_combobox = ttk.Combobox(create_frame, values=[org[1] for org in organizations], width=30)
     org_combobox.grid(row=2, column=1, padx=10, pady=10)
 
-
-    ttk.Label(create_frame, text="Role:").grid(row=3, column=0, padx=10, pady=10, sticky="e")
-    roles = ["President", "Vice President", "Treasurer", "Member", "Secretary", "Treasurer", "Committee Head", "Alumni"] 
-    role_combobox = ttk.Combobox(create_frame, values=roles, width=30)
-    role_combobox.grid(row=3, column=1, padx=10, pady=10)
-
-    ttk.Label(create_frame, text="Semester:").grid(row=4, column=0, padx=10, pady=10, sticky="e")
-    semesters = ["1st", "2nd", "Midyear"]
-    semester_combobox = ttk.Combobox(create_frame, values=semesters, width=30)
-    semester_combobox.grid(row=4, column=1, padx=10, pady=10)
-
-
-    ttk.Label(create_frame, text="Academic Year:").grid(row=5, column=0, padx=10, pady=10, sticky="e")
-    acadyears = [f"202{i}-202{i+1}" for i in range(4)]
-    academic_year_combobox = ttk.Combobox(create_frame, values=acadyears, width=30)
-    academic_year_combobox.grid(row=5, column=1, padx=10, pady=10)
-
-
-    ttk.Label(create_frame, text="Degree Program:").grid(row=6, column=0, padx=10, pady=10, sticky="e")
-    dp = ["BSAM","BSSTAT","BSCS"]
-    deg_prog_combobox = ttk.Combobox(create_frame, values =dp,width=30)
-    deg_prog_combobox.grid(row=6, column=1, padx=10, pady=10)
-
-    ttk.Label(create_frame, text="Gender:").grid(row=7, column=0, padx=10, pady=10, sticky="e")
-    gender = ["M", "F"]
-    gender_combobox = ttk.Combobox(create_frame, values =gender,width=30)
-    gender_combobox.grid(row=7, column=1, padx=10, pady=10)
-
-    ttk.Label(create_frame, text="Batch:").grid(row=8, column=0, padx=10, pady=10, sticky="e")
-    batch = [i + 1 for i in range(2000,2030)]
-    batch_combobox = ttk.Combobox(create_frame, values =batch,width=30)
-    batch_combobox.grid(row=8, column=1, padx=10, pady=10)
+    # User Type
+    ttk.Label(create_frame, text="User Type:").grid(row=3, column=0, padx=10, pady=10, sticky="e")
+    user_type_combobox = ttk.Combobox(create_frame, values=["admin", "president"], width=30, state="readonly")
+    user_type_combobox.grid(row=3, column=1, padx=10, pady=10)
+    user_type_combobox.current(0)  # Default to 'admin'
 
     def create_user():
         username = new_username.get()
         password = new_password.get()
         organization = org_combobox.get()
-        role = role_combobox.get()
-        semester = semester_combobox.get()
-        academic_year = academic_year_combobox.get()
-        deg_prog = deg_prog_combobox.get()
-        gender = gender_combobox.get()
-        batch = batch_combobox.get()
+        user_type = user_type_combobox.get()
         
         # Validate input
-        if not username or not password or not organization or not role or not semester or not academic_year:
+        if not username or not password or not organization or not user_type:
             messagebox.showwarning("Input Required", "All fields are required.")
             return
         
@@ -309,87 +277,21 @@ def open_superadmin_panel(root):
                 messagebox.showwarning("Username Exists", "This username already exists.")
                 conn.close()
                 return
-            
-
-            cur.execute("SELECT MAX(mem_id) FROM member")
-            max_mem_id = cur.fetchone()[0]
-            new_mem_id = max_mem_id + 1 if max_mem_id is not None else 1
-
-            cur.execute("""
-                INSERT INTO member (mem_id, deg_prog, gender, batch) VALUES (?, ?, ? , ?)
-            """, (new_mem_id, deg_prog, gender, batch ))
-            conn.commit()
 
             # Insert new user into userdata table
             hashed_password = hash_password(password)
-            cur.execute("INSERT INTO userdata (username, password, mem_id) VALUES (?, ?, ?)", (username, hashed_password, new_mem_id))
+            cur.execute("INSERT INTO userdata (username, password, user_type, organization) VALUES (?, ?, ?, ?)", (username, hashed_password, user_type, organization))
             conn.commit()
-
-            # Fetch org_id from the organization selected
-            org_id = None
-            for org in organizations:
-                if org[1] == organization:
-                    org_id = org[0]
-                    break
-            # Fetch org_id from the organization table
-            cur.execute("SELECT org_id FROM organization WHERE org_name = ?", (organization,))
-            org_id_row = cur.fetchone()
-
-            if org_id_row:
-                org_id = org_id_row[0] 
-                print(new_mem_id, org_id, organization, role, "Active", semester, academic_year)
-                try:
-                    cur.execute("""
-                        CREATE TABLE IF NOT EXISTS president_panel (
-                            mem_id INT,
-                            org_id INT,
-                            org_name VARCHAR(255),
-                            role VARCHAR(255),
-                            status VARCHAR(255),
-                            semester VARCHAR(255),
-                            academic_year VARCHAR(255),
-                            PRIMARY KEY(mem_id, org_id)
-                        )
-                    """)
-                    conn.commit()
-
-                    # Insert data into 'president_panel' if the role is "President"
-                    if role == "President":
-                        cur.execute("""
-                            INSERT INTO president_panel (mem_id, org_id, org_name, role, status, semester, academic_year)
-                            VALUES (?, ?, ?, ?, ?, ?, ?)
-                        """, (new_mem_id, org_id, organization, role, "Active", semester, academic_year))
-                        conn.commit()
-
-                except Exception as e:
-                    print(f"Error occurred: {e}")
-
-            else:
-                print(f"Organization {organization} not found in the database.")
-
-            # Insert the new user into serves table
-            cur.execute("""
-                INSERT INTO serves (mem_id, org_id, role, semester, academic_year)
-                VALUES (?, ?, ?, ?, ?)
-            """, (new_mem_id, org_id, role, semester, academic_year))
-            conn.commit()
-            conn.close()
-
 
             # Success message
-            messagebox.showinfo("Success", f"User '{username}' has been created and assigned to '{organization}' as {role}.")
+            messagebox.showinfo("Success", f"User '{username}' has been created and assigned to '{organization}'")
 
             
             # Clear the input fields
             new_username.delete(0, tk.END)
             new_password.delete(0, tk.END)
             org_combobox.delete(0, tk.END)
-            role_combobox.delete(0, tk.END)
-            semester_combobox.delete(0, tk.END)
-            academic_year_combobox.delete(0, tk.END)
-            deg_prog_combobox.delete(0, tk.END)
-            gender_combobox.delete(0, tk.END)
-            batch_combobox.delete(0,tk.END)
+            user_type_combobox.delete(0, tk.END)
 
             load_users()  # Refresh the user list (if you have a function to load users)
 

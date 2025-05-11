@@ -6,6 +6,7 @@ from tkinter import messagebox
 from db_connection import run_studorg
 from authentication import authenticate_user
 from superadmin_panel import open_superadmin_panel
+from president_panel import open_president_panel
 
 # SERVER
 def server_program():
@@ -21,9 +22,20 @@ def server_program():
             username = c.recv(1024).decode()
             password = c.recv(1024).decode()
 
-            response = authenticate_user(action, username, password) 
+            result = authenticate_user(action, username, password)  # Get result from authenticate_user
 
-            c.send(response.encode())  # Send response to client
+            # Initialize org_id to a default numeric value (e.g., 0)
+            org_id = 0
+
+            # Handle cases based on the result format
+            if isinstance(result, tuple):  # If it's a tuple, unpack
+                response, organization, org_id = result
+            else:  # Otherwise, it's just a string (status)
+                response = result
+                organization = ""
+
+            # Send the status, organization, and org_id as a formatted string
+            c.send(f"{response}|{organization}|{org_id}".encode())  # Concatenate response, org_name, and org_id
 
         except Exception as e:
             print(f"Error handling connection: {e}")
@@ -32,7 +44,7 @@ def server_program():
             except:
                 pass
         finally:
-            c.close()
+            c.close()  # Ensure we close the connection at the end of the process
 
     print("Server listening on localhost:3001...")
     while True:
@@ -44,16 +56,20 @@ def send_request(action, username, password):
     try:
         client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         client.connect(("localhost", 3001))
-        client.recv(1024)  #Wait for ready
+        client.recv(1024)  # Wait for ready signal
 
         client.send(action.encode())
         client.send(username.encode())
         client.send(password.encode())
 
-        response = client.recv(1024).decode()
-        return response
+        response = client.recv(1024).decode()  # Receive the response (status|organization|org_id)
+        status, org_name, org_id = response.split('|', 2)  # Split the status, organization, and org_id
+        org_id = int(org_id)  # Ensure org_id is numeric
+        return status, org_name, org_id  # Return the org_id as a numeric value
+
     except Exception as e:
-        return f"Error: {e}"
+        return f"Error: {e}", "", 0  # Return 0 as default for org_id if error occurs
+
 
 def login():
     username = entry_username.get()
@@ -62,16 +78,20 @@ def login():
         messagebox.showerror("Error", "Please enter username and password.")
         return
     
-    result = send_request("login", username, password)
+    status, org_name, org_id = send_request("login", username, password)  # Include org_id in the response
     
-    if result == "SUPERADMIN_LOGIN_SUCCESS":
-        # Remove login elements
+    if status == "SUPERADMIN_LOGIN_SUCCESS":
         title_label.pack_forget()
         form_frame.pack_forget()
         button_frame.pack_forget()
-        open_superadmin_panel(root) 
+        open_superadmin_panel(root)
+    elif status == "LOGIN_SUCCESS":
+        title_label.pack_forget()
+        form_frame.pack_forget()
+        button_frame.pack_forget()
+        open_president_panel(root, False, org_name, org_id)  # Pass org_id to the president panel
     else:
-        messagebox.showinfo("Login Result", result)
+        messagebox.showinfo("Login Result", status)
 
 
 
@@ -79,7 +99,7 @@ def clear_fields():
     entry_username.delete(0, tk.END)
     entry_password.delete(0, tk.END)
 
-run_studorg() #USe only on first run
+run_studorg() #Use only on first run
 
 window_width = 1300
 window_height = 650

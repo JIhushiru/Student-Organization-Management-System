@@ -55,8 +55,8 @@ CREATE TABLE userdata (
     	user_id INT AUTO_INCREMENT PRIMARY KEY,
     	username VARCHAR(50) NOT NULL UNIQUE,
     	password VARCHAR(255) NOT NULL,
-   	user_type ENUM('admin', 'president') NOT NULL,
-organization VARCHAR(50)
+   		user_type ENUM('admin', 'president') NOT NULL,
+		organization VARCHAR(50)
 );
 
 SHOW tables;
@@ -148,5 +148,6 @@ INSERT INTO FEE VALUES
 
 
 
-INSERT INTO userdata (username, password, user_type) VALUES
-('superadmin', '$2b$12$AHxFKMjQBZscM2gl1Resvepco341TN2Q9WztlNcvx0bO2MryKEnmm', 'admin');
+INSERT INTO userdata (username, password, user_type, organization) VALUES
+('superadmin', '$2b$12$AHxFKMjQBZscM2gl1Resvepco341TN2Q9WztlNcvx0bO2MryKEnmm', 'admin', NULL),
+('pres', '$2b$12$l.vNxZkiIMlA4zoPrB5YIeo05H54Yj2EFOArknAhy6vZV8YyDPe6e', 'president', 'STAT_ORG');

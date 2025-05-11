@@ -7,7 +7,7 @@ from members import show_member_table
 conn = get_connection()
 cur = conn.cursor()
 
-def open_president_panel(root, org_id, org_name):
+def open_president_panel(root, admin, org_name, org_id=0):
     # Clear root and setup layout
     for widget in root.winfo_children():
         widget.destroy()
@@ -33,9 +33,7 @@ def open_president_panel(root, org_id, org_name):
 
     # Title label in the top nav
     top_nav_title = tk.Label(top_nav, text=org_name, fg="white", bg=primary_color, font=title_font)
-    print(org_name)
     top_nav_title.pack(side="left", padx=10)
-    print(org_id)
 
     def on_enter(e):
         if e.widget["bg"] != button_selected_bg:
@@ -102,27 +100,27 @@ def open_president_panel(root, org_id, org_name):
     # Load homepage by default
     load_table("home")
 
-        # Function to handle going back to superadmin panel
-    def go_back():
-        # Dynamically import superadmin panel to avoid circular import
-        from superadmin_panel import open_superadmin_panel  # <-- Import HERE
-        # Clear current panel
-        for widget in root.winfo_children():
-            widget.destroy()
-        # Reopen superadmin panel
-        open_superadmin_panel(root)
-
     # Back to Superadmin button (right side)
-    back_btn = tk.Button(
-        top_nav,
-        text="Admin Page",
-        command=go_back,
-        fg="white",
-        bg=button_bg,
-        font=button_font,
-        relief="flat",
-        bd=0
-    )
-    back_btn.pack(side="right", padx=5, pady=2, ipady=5, ipadx=2)
-    back_btn.bind("<Enter>", on_enter)
-    back_btn.bind("<Leave>", on_leave)
+    if(admin):
+                # Function to handle going back to superadmin panel
+        def go_back():
+            # Dynamically import superadmin panel to avoid circular import
+            from superadmin_panel import open_superadmin_panel  # <-- Import HERE
+            # Clear current panel
+            for widget in root.winfo_children():
+                widget.destroy()
+            # Reopen superadmin panel
+            open_superadmin_panel(root)
+        back_btn = tk.Button(
+            top_nav,
+            text="Admin Page",
+            command=go_back,
+            fg="white",
+            bg=button_bg,
+            font=button_font,
+            relief="flat",
+            bd=0
+        )
+        back_btn.pack(side="right", padx=5, pady=2, ipady=5, ipadx=2)
+        back_btn.bind("<Enter>", on_enter)
+        back_btn.bind("<Leave>", on_leave)

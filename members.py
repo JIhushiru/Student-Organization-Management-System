@@ -247,6 +247,9 @@ def refresh_member_table(root, cur, filters, sort_by, org_id):
     if sort_by and sort_by != "Sort by":
         query += f" ORDER BY {sort_by}"
 
+    print("Query:", query)  # Debugging line to check the query
+    print("Params:", params)  # Debugging line to check parameters
+
     cur.execute(query, tuple(params))
     members = cur.fetchall()
 
