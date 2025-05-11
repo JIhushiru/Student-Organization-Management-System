@@ -79,7 +79,7 @@ def clear_fields():
     entry_username.delete(0, tk.END)
     entry_password.delete(0, tk.END)
 
-run_studorg()
+run_studorg() #USe only on first run
 
 window_width = 1300
 window_height = 650

@@ -58,21 +58,18 @@ def send_request(action, username, password):
 def login():
     username = entry_username.get()
     password = entry_password.get()
-
     if not username or not password:
         messagebox.showerror("Error", "Please enter username and password.")
         return
-
-    if username == "superadmin":
-        run_studorg(username, password)
-
+    
     result = send_request("login", username, password)
-
+    
     if result == "SUPERADMIN_LOGIN_SUCCESS":
+        # Remove login elements
         title_label.pack_forget()
         form_frame.pack_forget()
         button_frame.pack_forget()
-        open_superadmin_panel(root)
+        open_superadmin_panel(root) 
     else:
         messagebox.showinfo("Login Result", result)
 
@@ -82,6 +79,7 @@ def clear_fields():
     entry_username.delete(0, tk.END)
     entry_password.delete(0, tk.END)
 
+run_studorg() #USe only on first run
 
 window_width = 1300
 window_height = 650

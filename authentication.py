@@ -10,7 +10,7 @@ def is_superadmin(username):
 
 def authenticate_user(action, username, password):
     try:
-        conn = get_connection(password)
+        conn = get_connection()
         cur = conn.cursor()
 
         if action == "login":
