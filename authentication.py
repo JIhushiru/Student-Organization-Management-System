@@ -3,14 +3,14 @@ from db_connection import get_connection
 
 def hash_password(password):
     hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
-    return hashed_password
+    return hashed_password.decode('utf-8')
 
 def is_superadmin(username):
     return username == "superadmin"
 
 def authenticate_user(action, username, password):
     try:
-        conn = get_connection()
+        conn = get_connection(password)
         cur = conn.cursor()
 
         if action == "login":

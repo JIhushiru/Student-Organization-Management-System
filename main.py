@@ -3,10 +3,9 @@ import socket
 import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
+from db_connection import run_studorg
 from authentication import authenticate_user
-from db_connection import get_connection
 from superadmin_panel import open_superadmin_panel
-from president_panel import open_president_panel
 
 # SERVER
 def server_program():
@@ -66,53 +65,26 @@ def login():
     result = send_request("login", username, password)
     
     if result == "SUPERADMIN_LOGIN_SUCCESS":
-        messagebox.showinfo("Login Result", "Superadmin login successful!")
-        open_superadmin_panel(root)
-    elif result == "LOGIN_SUCCESS":
-        
-        try:
-            conn = get_connection()
-            cur = conn.cursor()
-
-            # Check if the username is in the `president_panel` table (this is where we check if the user is a president)
-            cur.execute("SELECT mem_id FROM userdata WHERE username = ?", (username,))
-            user = cur.fetchone()
-            
-            if user:
-                member_id = user[0]
-                
-                # Check if this user is a president
-                cur.execute("SELECT * FROM president_panel WHERE mem_id = ?", (member_id,))
-                if cur.fetchone():
-                    open_president_panel(root, member_id)
-                else:
-                    messagebox.showinfo("Welcome", "You are logged in, but not a president.")
-            else:
-                messagebox.showinfo("Error", "User not found.")
-        except Exception as e:
-            messagebox.showerror("Database Error", f"Error checking president status: {e}")
-
+        # Remove login elements
+        title_label.pack_forget()
+        form_frame.pack_forget()
+        button_frame.pack_forget()
+        open_superadmin_panel(root) 
     else:
         messagebox.showinfo("Login Result", result)
 
 
-def register():
-    username = entry_username.get()
-    password = entry_password.get()
-    if not username or not password:
-        messagebox.showerror("Error", "Please enter username and password.")
-        return
-    result = send_request("register", username, password)
-    messagebox.showinfo("Registration Result", result)
 
 def clear_fields():
     entry_username.delete(0, tk.END)
     entry_password.delete(0, tk.END)
 
-window_width = 400
-window_height = 250
+run_studorg()
+
+window_width = 1300
+window_height = 650
 root = tk.Tk()
-root.title("Login/Register")
+root.title("Organization Database Management")
 root.geometry(f"{window_width}x{window_height}")  
 root.resizable(False, False)
 
@@ -145,9 +117,6 @@ button_frame.pack(pady=10)
 
 btn_login = ttk.Button(button_frame, text="Login", command=login)
 btn_login.grid(row=0, column=0, padx=5, ipadx=10)
-
-btn_register = ttk.Button(button_frame, text="Register", command=register)
-btn_register.grid(row=0, column=1, padx=5, ipadx=10)
 
 btn_clear = ttk.Button(button_frame, text="Clear", command=clear_fields)
 btn_clear.grid(row=0, column=2, padx=5, ipadx=10)

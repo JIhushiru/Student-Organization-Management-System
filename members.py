@@ -1,12 +1,49 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 
-def show_member_table(root, cur):
+# Color scheme and fonts
+primary_color = "#0078D4"
+button_bg = "#00A4EF"
+button_hover_bg = "#0063B1"
+main_area_bg = "#FFFFFF"
+title_font = ("Segoe UI", 11)
+button_font = ("Segoe UI", 10)
+modern_font = ("Arial", 10)
+
+# Style helper
+def style_button(btn):
+    btn.configure(
+        font=button_font,
+        relief="flat",
+        bg=button_bg,
+        fg="white",
+        activebackground=button_hover_bg,
+        activeforeground="white",
+        borderwidth=1,
+        highlightthickness=1,
+        highlightbackground="#cccccc",
+        highlightcolor="#cccccc",
+        padx=6,
+        pady=3,
+        cursor="hand2"
+    )
+
+    def on_enter(e):
+        btn['background'] = button_hover_bg
+
+    def on_leave(e):
+        btn['background'] = button_bg
+
+    btn.bind("<Enter>", on_enter)
+    btn.bind("<Leave>", on_leave)
+
+
+def show_member_table(root, cur, org_id):
     # Top filter and sort UI
-    top_frame = tk.Frame(root, pady=10)
+    top_frame = tk.Frame(root, pady=10, bg=main_area_bg)
     top_frame.pack(fill="x")
 
-    filter_frame = tk.Frame(top_frame)
+    filter_frame = tk.Frame(top_frame, bg=main_area_bg)
     filter_frame.pack(side="left", fill="x", expand=True)
 
     gender_var = tk.StringVar(value="Select")
@@ -15,14 +52,16 @@ def show_member_table(root, cur):
     year_var = tk.StringVar()
     sort_var = tk.StringVar(value="Sort by")
 
-    tk.Label(filter_frame, text="Gender:").grid(row=0, column=0, padx=5)
-    tk.OptionMenu(filter_frame, gender_var, "Select", "M", "F").grid(row=0, column=1, padx=5)
-    tk.Label(filter_frame, text="Batch:").grid(row=0, column=2, padx=5)
-    tk.Entry(filter_frame, textvariable=batch_var, width=8).grid(row=0, column=3, padx=5)
-    tk.Label(filter_frame, text="Degree:").grid(row=0, column=4, padx=5)
-    tk.Entry(filter_frame, textvariable=degree_var, width=10).grid(row=0, column=5, padx=5)
-    tk.Label(filter_frame, text="Year:").grid(row=0, column=6, padx=5)
-    tk.Entry(filter_frame, textvariable=year_var, width=8).grid(row=0, column=7, padx=5)
+    tk.Label(filter_frame, text="Gender:", bg=main_area_bg).grid(row=0, column=0, padx=5)
+    gender_menu = tk.OptionMenu(filter_frame, gender_var, "Select", "M", "F")
+    gender_menu.config(relief="flat", font=modern_font, bg="white", highlightthickness=1, borderwidth=1)
+    gender_menu.grid(row=0, column=1, padx=5)
+    tk.Label(filter_frame, text="Batch:", bg=main_area_bg).grid(row=0, column=2, padx=5)
+    tk.Entry(filter_frame, textvariable=batch_var, width=8, font=modern_font, bd=1, relief="flat", highlightthickness=1, highlightbackground="gray").grid(row=0, column=3, padx=5)
+    tk.Label(filter_frame, text="Degree:", bg=main_area_bg).grid(row=0, column=4, padx=5)
+    tk.Entry(filter_frame, textvariable=degree_var, width=10, font=modern_font, bd=1, relief="flat", highlightthickness=1, highlightbackground="gray").grid(row=0, column=5, padx=5)
+    tk.Label(filter_frame, text="Year:", bg=main_area_bg).grid(row=0, column=6, padx=5)
+    tk.Entry(filter_frame, textvariable=year_var, width=8, font=modern_font, bd=1, relief="flat", highlightthickness=1, highlightbackground="gray").grid(row=0, column=7, padx=5)
 
     def apply_filters():
         filters = {}
@@ -34,15 +73,17 @@ def show_member_table(root, cur):
             filters["degree"] = degree_var.get()
         if year_var.get():
             filters["year"] = year_var.get()
-        refresh_member_table(root, cur, filters, sort_var.get())
+        refresh_member_table(root, cur, filters, sort_var.get(), org_id)
 
-    tk.Button(filter_frame, text="Apply Filters", command=apply_filters).grid(row=0, column=8, padx=10)
+    apply_btn = tk.Button(filter_frame, text="Apply Filters", command=apply_filters)
+    apply_btn.grid(row=0, column=8, padx=10)
+    style_button(apply_btn)
 
     # Sort and reset
-    right_tools_frame = tk.Frame(top_frame)
+    right_tools_frame = tk.Frame(top_frame, bg=main_area_bg)
     right_tools_frame.pack(side="right")
 
-    tk.Label(right_tools_frame, text="Sort by:").pack(side="left", padx=5)
+    tk.Label(right_tools_frame, text="Sort by:", bg=main_area_bg).pack(side="left", padx=5)
     sort_options = [
         "mem_id", "first_name", "second_name", "surname", "email",
         "deg_prog", "year_mem", "gender", "batch"
@@ -50,9 +91,11 @@ def show_member_table(root, cur):
 
     def on_sort_select(selected_col):
         if selected_col != "Sort by":
-            refresh_member_table(root, cur, {}, selected_col)
+            refresh_member_table(root, cur, {}, selected_col, org_id)
 
-    tk.OptionMenu(right_tools_frame, sort_var, *sort_options, command=on_sort_select).pack(side="left")
+    sort_menu = tk.OptionMenu(right_tools_frame, sort_var, *sort_options, command=on_sort_select)
+    sort_menu.config(relief="flat", font=modern_font, bg="white", highlightthickness=1, borderwidth=1)
+    sort_menu.pack(side="left")
 
     def reset_all():
         gender_var.set("Select")
@@ -60,26 +103,33 @@ def show_member_table(root, cur):
         degree_var.set("")
         year_var.set("")
         sort_var.set("Sort by")
-        refresh_member_table(root, cur, {}, "")
+        refresh_member_table(root, cur, {}, "", org_id)
 
-    tk.Button(right_tools_frame, text="🔄", font=("Arial", 12), command=reset_all).pack(side="left", padx=10)
+    reset_btn = tk.Button(right_tools_frame, text="🔄", font=modern_font, command=reset_all)
+    reset_btn.pack(side="left", padx=10)
+    style_button(reset_btn)
 
     # Treeview
     tree_frame = tk.Frame(root)
     tree_frame.pack(fill="both", expand=True)
 
-    columns = ("mem_id", "first_name", "second_name", "surname", "email", "deg_prog", "year_mem", "gender", "batch")
-    tree = ttk.Treeview(tree_frame, columns=columns, show="headings")
+    columns = ("Member Id", "First Name", "Second Name", "Surname", "email", "Degree Program", "Year of Membership", "Sex", "Batch")
+    tree = ttk.Treeview(tree_frame, columns=columns, show="headings", style="Modern.Treeview")
     tree.pack(fill="both", expand=True)
 
     for col in columns:
         tree.heading(col, text=col)
         tree.column(col, width=120)
 
+    # Modern Treeview Style
+    style = ttk.Style()
+    style.configure("Modern.Treeview", font=modern_font, rowheight=25)
+    style.configure("Modern.Treeview.Heading", font=("Arial", 9, "bold"))
+
     root.tree = tree
 
     # Buttons frame
-    button_frame = tk.Frame(root)
+    button_frame = tk.Frame(root, bg=main_area_bg)
     button_frame.pack(pady=10)
 
     def delete_selected():
@@ -97,7 +147,7 @@ def show_member_table(root, cur):
             cur.execute("DELETE FROM serves WHERE mem_id = %s", (member_id,))
             cur.execute("DELETE FROM member WHERE mem_id = %s", (member_id,))
         cur.connection.commit()
-        refresh_member_table(root, cur, {}, "")
+        refresh_member_table(root, cur, {}, "", org_id)
 
     def edit_selected():
         selected = root.tree.selection()
@@ -121,7 +171,7 @@ def show_member_table(root, cur):
             batch = batch_var.get()
 
             try:
-                cur.execute("""
+                cur.execute(""" 
                     UPDATE member SET
                     first_name = %s, second_name = %s, surname = %s,
                     email = %s, deg_prog = %s, year_mem = %s,
@@ -129,7 +179,7 @@ def show_member_table(root, cur):
                     WHERE mem_id = %s
                 """, (first_name, second_name, surname, email, deg_prog, year_mem, gender, batch, member_id))
                 cur.connection.commit()
-                refresh_member_table(root, cur, {}, "")
+                refresh_member_table(root, cur, {}, "", org_id)
                 edit_window.destroy()
             except Exception as e:
                 messagebox.showerror("Error", str(e))
@@ -161,30 +211,45 @@ def show_member_table(root, cur):
             if label == "Gender":
                 tk.OptionMenu(edit_window, var, "M", "F").grid(row=idx, column=1)
             else:
-                tk.Entry(edit_window, textvariable=var).grid(row=idx, column=1)
+                tk.Entry(edit_window, textvariable=var, font=modern_font, bd=1, relief="flat", highlightthickness=1, highlightbackground="black").grid(row=idx, column=1)
 
-        tk.Button(edit_window, text="Save Changes", command=save_changes).grid(row=len(entries), column=0, columnspan=2, pady=10)
+        save_btn = tk.Button(edit_window, text="Save Changes", command=save_changes)
+        save_btn.grid(row=len(entries), column=0, columnspan=2, pady=10)
+        style_button(save_btn)
 
-    # Final buttons
-    tk.Button(button_frame, text="Edit Selected ✏️", command=edit_selected).pack(side="left", padx=10)
-    tk.Button(button_frame, text="Delete Selected 🔴", command=delete_selected, fg="red").pack(side="left", padx=10)
+    edit_btn = tk.Button(button_frame, text="Edit", command=edit_selected)
+    edit_btn.pack(side="left", padx=10)
+    style_button(edit_btn)
 
-    refresh_member_table(root, cur, {}, "")
+    del_btn = tk.Button(button_frame, text="Delete", command=delete_selected, fg="red")
+    del_btn.pack(side="left", padx=10)
+    style_button(del_btn)
 
-def refresh_member_table(root, cur, filters, sort_by):
-    query = "SELECT * FROM member WHERE 1=1"
+    refresh_member_table(root, cur, {}, "", org_id)
+
+
+def refresh_member_table(root, cur, filters, sort_by, org_id):
+    query = "SELECT * FROM member natural join serves WHERE org_id = %s "
+    params = [org_id]
+
     if filters.get("gender"):
-        query += f" AND gender = '{filters['gender']}'"
+        query += " AND gender = %s"
+        params.append(filters["gender"])
     if filters.get("batch"):
-        query += f" AND batch = {filters['batch']}"
+        query += " AND batch = %s"
+        params.append(filters["batch"])
     if filters.get("degree"):
-        query += f" AND deg_prog LIKE '%{filters['degree']}%'"
+        query += " AND deg_prog LIKE %s"
+        params.append(f"%{filters['degree']}%")
     if filters.get("year"):
-        query += f" AND year_mem = {filters['year']}"
+        query += " AND year_mem = %s"
+        params.append(filters["year"])
     if sort_by and sort_by != "Sort by":
         query += f" ORDER BY {sort_by}"
-    cur.execute(query)
+
+    cur.execute(query, tuple(params))
     members = cur.fetchall()
+
     for row in root.tree.get_children():
         root.tree.delete(row)
     for member in members:

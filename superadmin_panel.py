@@ -2,25 +2,37 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 from authentication import hash_password
 from db_connection import get_connection
+from president_panel import open_president_panel
 
 def open_superadmin_panel(root):
-    admin_root = tk.Toplevel(root)
-    admin_root.title("Super Admin Panel")
-    admin_root.geometry("700x500")
-    admin_root.resizable(False, False)
-    
-    # To prevent interaction with the main window
-    admin_root.transient(root)
-    admin_root.grab_set()
-    
-    window_width = 700
-    window_height = 700
-    position_top = int(admin_root.winfo_screenheight() / 2 - window_height / 2)
-    position_left = int(admin_root.winfo_screenwidth() / 2 - window_width / 2)
-    admin_root.geometry(f'{window_width}x{window_height}+{position_left}+{position_top}')
-    
     # Tabs
-    tab = ttk.Notebook(admin_root)
+    tab = ttk.Notebook(root)
+
+    # Organizations Tab
+    orgs_tab = ttk.Frame(tab)
+    tab.add(orgs_tab, text='Organizations')
+
+    def fetch_organizations():
+        """Fetch organizations from the database"""
+        conn = get_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT org_id, org_name FROM organization")
+        organizations = cur.fetchall()
+        conn.close()
+        return organizations
+
+    def populate_organization_buttons():
+        try:
+            organizations = fetch_organizations()
+            for org_id, org_name in organizations:
+                btn = ttk.Button(orgs_tab, text=f"Manage: {org_name}",
+                                command=lambda oid=org_id, oname=org_name: open_president_panel(root, oid, oname))
+                btn.pack(pady=5, anchor="w", padx=10)
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to load organizations: {e}")
+
+    populate_organization_buttons()
+
     
     # User List Tab
     user_tab = ttk.Frame(tab)
@@ -29,7 +41,6 @@ def open_superadmin_panel(root):
     # Create User Tab
     create_tab = ttk.Frame(tab)
     tab.add(create_tab, text='Create User')
-    
 
     autocreate_tab = ttk.Frame(tab)
     tab.add(autocreate_tab, text='Autocreate User')
@@ -66,7 +77,7 @@ def open_superadmin_panel(root):
             cur = conn.cursor()
             
             # Get all users except superadmin
-            cur.execute("SELECT login_id, username, mem_id FROM userdata WHERE username != 'superadmin'")
+            cur.execute("SELECT username, organization FROM userdata WHERE username != 'superadmin'")
             
             for user in cur:
                 tree.insert("", "end", values=user)
@@ -89,15 +100,15 @@ def open_superadmin_panel(root):
         username = tree.item(selected_item[0], "values")[1]
         
         # Confirmation Dialog
-        confirm_dialog = tk.Toplevel(admin_root)
+        confirm_dialog = tk.Toplevel(root)
         confirm_dialog.title("Confirm Deletion")
         confirm_dialog.geometry("300x150")
         confirm_dialog.resizable(False, False)
-        confirm_dialog.transient(admin_root)
+        confirm_dialog.transient(root)
         confirm_dialog.grab_set()
         
-        dialog_x = admin_root.winfo_x() + (admin_root.winfo_width() // 2) - 150
-        dialog_y = admin_root.winfo_y() + (admin_root.winfo_height() // 2) - 75
+        dialog_x = root.winfo_x() + (root.winfo_width() // 2) - 150
+        dialog_y = root.winfo_y() + (root.winfo_height() // 2) - 75
         confirm_dialog.geometry(f"+{dialog_x}+{dialog_y}")
         
         # Dialog content
@@ -148,18 +159,6 @@ def open_superadmin_panel(root):
     #Create User tab
     create_frame = ttk.Frame(create_tab)
     create_frame.pack(pady=50)
-    
-
-
-
-    def fetch_organizations():
-        """Fetch organizations from the database"""
-        conn = get_connection()
-        cur = conn.cursor()
-        cur.execute("SELECT org_id, org_name FROM organization")
-        organizations = cur.fetchall()
-        conn.close()
-        return organizations
     
     def autocreate_user():
         organization = org_combobox_autocreate.get()
@@ -400,16 +399,16 @@ def open_superadmin_panel(root):
     
     # Create button
     ttk.Button(create_frame, text="Create User", command=create_user).grid(row=10, column=0, columnspan=2, pady=20)
-    close_btn = ttk.Button(admin_root, text="Close Admin Panel", command=admin_root.destroy)
+    close_btn = ttk.Button(root, text="Close Admin Panel", command=root.destroy)
     close_btn.pack(pady=10)
     
     load_users()
     
     def on_close():
-        admin_root.grab_release()
-        admin_root.destroy()
+        root.grab_release()
+        root.destroy()
     
-    admin_root.protocol("WM_DELETE_WINDOW", on_close)
+    root.protocol("WM_DELETE_WINDOW", on_close)
     
     # Wait until this window is closed before returning to the main window
-    admin_root.wait_window()
+    root.wait_window()

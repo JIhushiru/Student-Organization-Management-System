@@ -1,88 +1,128 @@
 import tkinter as tk
-from tkinter import messagebox
-from tkinter import ttk
 from db_connection import get_connection
 from fee import show_fee_table
 from members import show_member_table
-from organization import show_organization_table
-from serves import show_serves_table
 
-# Establish connection with the database
+# Establish database connection
 conn = get_connection()
 cur = conn.cursor()
 
-def open_president_panel(root, member_id):
-    # Set window title and size
-    root.title("President Panel")
-    root.geometry("1300x650")
-
-    # Main content area (Initially empty, will be populated later)
-    main_area = tk.Frame(root)
-    main_area.pack(expand=True, fill="both")
-
-    # Add content to main area (homepage)
-    show_homepage(root)
-
-def show_homepage(root):
-    # Clear any existing widgets in the root
+def open_president_panel(root, org_id, org_name):
+    # Clear root and setup layout
     for widget in root.winfo_children():
         widget.destroy()
 
-    # Create header for the page
-    header = tk.Label(root, text="President Panel - Organization Management",
-                      font=("Bell Gothic Std Black", 40, "bold"), fg="#0d0d0d")
-    header.pack(pady=5)
-
-    # Create subtext for the page
-    subtext = tk.Label(root, text="Manage Members, Fees, and More! Sana All",
-                       font=("Bell Gothic Std Light", 14), fg="black")
-    subtext.pack(pady=5)
-
-    # Button section for various management features
     buttons = [
+        ("Home", "home"),
         ("Manage Members", "member"),
         ("View Fees", "fee"),
-        ("Manage Organizations", "organization"),
-        ("Manage Services", "serves"),
     ]
-    
-    btn_frame = tk.Frame(root)
-    btn_frame.pack(pady=40)
-    
-    for text, table in buttons:
-        btn = tk.Button(btn_frame, text=text, width=20, height=2,
-                        font=("Bell Gothic Std Black", 12, "bold"), bg="#cfd1e3", fg="black",
-                        command=lambda t=table: load_table(root, t))
-        btn.pack(pady=10)
 
-def load_table(root, table_name):
-    # Clear the main content area
-    for widget in root.winfo_children():
-        widget.destroy()
+    # Microsoft-inspired color scheme
+    primary_color = "#0078D4"  # Soft blue for primary elements
+    button_bg = "#00A4EF"  # Light blue for button background
+    button_hover_bg = "#0063B1"  # Darker blue for hover effect
+    button_selected_bg = "#005A8D"  # Even darker blue for selected button
+    main_area_bg = "#FFFFFF"  # Clean white background for the main content
+    title_font = ("Segoe UI", 16, "bold")  # Segoe UI font, commonly used by Microsoft
+    button_font = ("Segoe UI", 12)
 
-    # Create the Home button in each table view
-    top_nav = tk.Frame(root, bg="#06044d", height=50)
+    top_nav = tk.Frame(root, bg=primary_color, height=40)
+    top_nav.pack_propagate(False)  # Prevent shrinking
     top_nav.pack(side="top", fill="x")
 
-    home_btn = tk.Button(top_nav, text="Home", command=lambda: show_homepage(root),
-                         fg="white", bg="#f0b505", font=("Malgun Gothic", 12), relief="sunken")
-    home_btn.pack(side="left", padx=10, pady=10)
+    # Title label in the top nav
+    top_nav_title = tk.Label(top_nav, text=org_name, fg="white", bg=primary_color, font=title_font)
+    print(org_name)
+    top_nav_title.pack(side="left", padx=10)
+    print(org_id)
 
-    if table_name == "member":
-        show_member_table(root,cur)
+    def on_enter(e):
+        if e.widget["bg"] != button_selected_bg:
+            e.widget["bg"] = button_hover_bg  # Darker blue on hover
 
-    elif table_name == "fee":
-        show_fee_table(root,cur)
+    def on_leave(e):
+        if e.widget["bg"] != button_selected_bg:
+            e.widget["bg"] = button_bg  # Default light blue color
 
-    elif table_name == "organization":
-        show_organization_table(root,cur)
+    selected_button = None  # Variable to track the selected button
 
-    elif table_name == "serves":
-        show_serves_table(root,cur)
+    def button_click(e, table_name):
+        nonlocal selected_button
+        if selected_button:
+            selected_button.config(bg=button_bg)  # Reset previous button color
+        e.widget.config(bg=button_selected_bg)  # Set the clicked button to selected color
+        selected_button = e.widget  # Update the selected button
+        load_table(table_name)  # Load the appropriate table
 
+    # Create buttons
+    for i, (text, table) in enumerate(buttons):
+        btn = tk.Button(top_nav, text=text, command=lambda t=table: load_table(t), 
+                        fg="white", bg=button_bg, font=button_font, relief="flat", bd=0)
+        btn.bind("<Enter>", on_enter)
+        btn.bind("<Leave>", on_leave)
+        btn.bind("<Button-1>", lambda e, t=table: button_click(e, t))  # Track button click
 
+        if i == 0:
+            btn.pack(side="left", ipady=10, ipadx=10, padx=(3, 1), pady=2)  # More left margin
+        else:
+            btn.pack(side="left", ipady=10, ipadx=10, padx=2, pady=2)
 
-if __name__ == "__main__":
-    root = tk.Tk()
-    open_president_panel(root, member_id=1)  # Sample member ID
-    root.mainloop()
+        # Default selected button is the "Home" button
+        if text == "Home":
+            selected_button = btn
+            btn.config(bg=button_selected_bg)  # Set default button to selected color
+
+    # Main content area with clean white background
+    main_area = tk.Frame(root, bg=main_area_bg)
+    main_area.pack(expand=True, fill="both")
+
+    # Function to handle switching views
+    def load_table(table_name):
+        # Clear main content area
+        for widget in main_area.winfo_children():
+            widget.destroy()
+        top_nav_title.config(text=org_name)
+        if table_name == "home":
+            # Update the title in the top navigation bar
+            home_header = tk.Label(main_area, text=org_name,
+                                   font=("Segoe UI", 40, "bold"), fg="#2C3E50", bg=main_area_bg)  # Charcoal text for professional tone
+            home_header.pack(pady=10)
+
+            subtext = tk.Label(main_area, text="Manage Members, Fees, and More!",
+                               font=("Segoe UI", 14), fg=primary_color, bg=main_area_bg)  # Soft blue subtext for a modern touch
+            subtext.pack(pady=5)
+
+        else:
+            if table_name == "member":
+                show_member_table(main_area, cur, org_id)
+            elif table_name == "fee":
+                show_fee_table(main_area, cur, org_id)
+
+    # Load homepage by default
+    load_table("home")
+
+        # Function to handle going back to superadmin panel
+    def go_back():
+        # Dynamically import superadmin panel to avoid circular import
+        from superadmin_panel import open_superadmin_panel  # <-- Import HERE
+        # Clear current panel
+        for widget in root.winfo_children():
+            widget.destroy()
+        # Reopen superadmin panel
+        open_superadmin_panel(root)
+
+    # Back to Superadmin button (right side)
+    back_btn = tk.Button(
+        top_nav,
+        text="Admin Page",
+        command=go_back,
+        fg="white",
+        bg=button_bg,
+        font=button_font,
+        relief="flat",
+        bd=0
+    )
+    back_btn.pack(side="right", padx=5, pady=2, ipady=5, ipadx=2)
+    back_btn.bind("<Enter>", on_enter)
+    back_btn.bind("<Leave>", on_leave)
