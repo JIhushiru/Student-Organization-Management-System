@@ -91,7 +91,17 @@ def show_member_table(root, cur, org_id):
 
     def on_sort_select(selected_col):
         if selected_col != "Sort by":
-            refresh_member_table(root, cur, {}, selected_col, org_id)
+            filters = {}
+            if gender_var.get() != "Select":
+                filters["gender"] = gender_var.get()
+            if batch_var.get():
+                filters["batch"] = batch_var.get()
+            if degree_var.get():
+                filters["degree"] = degree_var.get()
+            if year_var.get():
+                filters["year"] = year_var.get()
+            refresh_member_table(root, cur, filters, selected_col, org_id)
+
 
     sort_menu = tk.OptionMenu(right_tools_frame, sort_var, *sort_options, command=on_sort_select)
     sort_menu.config(relief="flat", font=modern_font, bg="white", highlightthickness=1, borderwidth=1)
@@ -229,31 +239,41 @@ def show_member_table(root, cur, org_id):
 
 
 def refresh_member_table(root, cur, filters, sort_by, org_id):
-    query = "SELECT * FROM member natural join serves WHERE org_id = %s "
-    params = [org_id]
+    base_query = "SELECT * FROM member NATURAL JOIN serves"
+    conditions = []
+    params = []
+
+    if org_id != 0:
+        conditions.append("org_id = %s")
+        params.append(org_id)
 
     if filters.get("gender"):
-        query += " AND gender = %s"
+        conditions.append("gender = %s")
         params.append(filters["gender"])
     if filters.get("batch"):
-        query += " AND batch = %s"
+        conditions.append("batch = %s")
         params.append(filters["batch"])
     if filters.get("degree"):
-        query += " AND deg_prog LIKE %s"
+        conditions.append("deg_prog LIKE %s")
         params.append(f"%{filters['degree']}%")
     if filters.get("year"):
-        query += " AND year_mem = %s"
+        conditions.append("year_mem = %s")
         params.append(filters["year"])
+
+    # Construct the WHERE clause only if there are conditions
+    if conditions:
+        base_query += " WHERE " + " AND ".join(conditions)
+
+    # Add sorting if applicable
     if sort_by and sort_by != "Sort by":
-        query += f" ORDER BY {sort_by}"
+        base_query += f" ORDER BY {sort_by}"
 
-    print("Query:", query)  # Debugging line to check the query
-    print("Params:", params)  # Debugging line to check parameters
-
-    cur.execute(query, tuple(params))
+    cur.execute(base_query, tuple(params))
     members = cur.fetchall()
 
+    # Clear and refill the tree
     for row in root.tree.get_children():
         root.tree.delete(row)
     for member in members:
         root.tree.insert("", "end", values=member)
+

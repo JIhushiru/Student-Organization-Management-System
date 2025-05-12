@@ -3,6 +3,7 @@ from tkinter import ttk, messagebox
 from authentication import hash_password
 from db_connection import get_connection
 from president_panel import open_president_panel
+import mariadb
 
 def open_superadmin_panel(root):
     # Tabs
@@ -21,19 +22,77 @@ def open_superadmin_panel(root):
         conn.close()
         return organizations
 
+    org_button_frame = ttk.Frame(orgs_tab)
+    org_button_frame.pack(fill='x', anchor='w', padx=10, pady=10)
     def populate_organization_buttons():
+        for widget in org_button_frame.winfo_children():
+            widget.destroy()
+
         try:
             organizations = fetch_organizations()
             for org_id, org_name in organizations:
-                btn = ttk.Button(orgs_tab, text=f"Manage: {org_name}",
+                btn = ttk.Button(org_button_frame, text=f"Manage: {org_name}",
                                 command=lambda oid=org_id, oname=org_name: open_president_panel(root, True, oname, oid))
-                btn.pack(pady=5, anchor="w", padx=10)
+                btn.pack(pady=2, anchor="w")
         except Exception as e:
             messagebox.showerror("Error", f"Failed to load organizations: {e}")
 
-    populate_organization_buttons()
+        # Always include "Manage: All orgs"
+        all_btn = ttk.Button(org_button_frame, text="Manage: All orgs",
+            command=lambda oid=0, oname="All": open_president_panel(root, True, oname, oid))
+        all_btn.pack(pady=2, anchor="w")
 
+    populate_organization_buttons()
     
+    def show_add_org_form():
+        add_window = tk.Toplevel(root)
+        add_window.title("Add New Organization")
+        add_window.geometry("300x180")
+
+        tk.Label(add_window, text="Organization Name:").grid(row=0, column=0, padx=10, pady=10, sticky="w")
+        org_name_entry = tk.Entry(add_window, width=25)
+        org_name_entry.grid(row=0, column=1, padx=10)
+
+        tk.Label(add_window, text="Organization Type:").grid(row=1, column=0, padx=10, pady=10, sticky="w")
+        org_type_entry = tk.Entry(add_window, width=25)
+        org_type_entry.grid(row=1, column=1, padx=10)
+
+        def submit_org():
+            org_name = org_name_entry.get().strip()
+            org_type = org_type_entry.get().strip()
+
+            if not org_name or not org_type:
+                messagebox.showwarning("Input Error", "All fields are required.")
+                return
+
+            try:
+                conn = get_connection()
+                cursor = conn.cursor()
+                cursor.execute(
+                    "INSERT INTO ORGANIZATION (org_name, type) VALUES (?, ?)",
+                    (org_name, org_type)
+                )
+                conn.commit()
+                messagebox.showinfo("Success", f"'{org_name}' added successfully!")
+                add_window.destroy()
+
+                # Refresh org buttons and combobox
+                populate_organization_buttons()
+                org_combobox_autocreate['values'] = [org[1] for org in fetch_organizations()]
+
+            except mariadb.Error as e:
+                messagebox.showerror("Database Error", f"Failed to add organization:\n{e}")
+            finally:
+                if cursor: cursor.close()
+                if conn: conn.close()
+
+
+        submit_btn = tk.Button(add_window, text="Add Organization", command=submit_org)
+        submit_btn.grid(row=2, column=0, columnspan=2, pady=20)
+    btn = ttk.Button(orgs_tab, text="Add Organization",command=show_add_org_form)
+    btn.pack(pady=5, anchor="w", padx=10)
+    
+
     # User List Tab
     user_tab = ttk.Frame(tab)
     tab.add(user_tab, text='View Users')

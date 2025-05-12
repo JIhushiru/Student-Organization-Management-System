@@ -7,7 +7,7 @@ from members import show_member_table
 conn = get_connection()
 cur = conn.cursor()
 
-def open_president_panel(root, admin, org_name, org_id=0):
+def open_president_panel(root, admin, org_name, org_id):
     # Clear root and setup layout
     for widget in root.winfo_children():
         widget.destroy()

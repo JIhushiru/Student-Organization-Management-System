@@ -82,28 +82,32 @@ def show_fee_table(root, cur, org_id):
     apply_btn.grid(row=0, column=8, padx=10)
     style_button(apply_btn)
 
+    # Sort and reset
     right_tools_frame = tk.Frame(top_frame, bg=main_area_bg)
     right_tools_frame.pack(side="right")
 
     tk.Label(right_tools_frame, text="Sort by:", bg=main_area_bg).pack(side="left", padx=5)
 
-    columns = [
-        "Fee Id", "Member Id", "Full Name", "Academic Year Issued", "Semester Issued",
-        "Due Date", "Fee Type", "Amount (Php)", "Status", "Date Paid"
+    sort_options = [
+        "fee_id", "mem_id", "academic_year_issued", "semester_issued",
+        "due_date", "fee_type", "amount", "status", "date_paid"
     ]
 
-    def on_sort_select(selected_col):
-        if selected_col == "Sort by":
-            return
-        data = [(root.tree.set(child, selected_col), child) for child in root.tree.get_children()]
-        try:
-            data.sort(key=lambda x: float(x[0]) if x[0] != '' else 0)
-        except ValueError:
-            data.sort(key=lambda x: x[0])
-        for index, (_, child) in enumerate(data):
-            root.tree.move(child, '', index)
 
-    sort_menu = tk.OptionMenu(right_tools_frame, sort_var, *columns, command=on_sort_select)
+    def on_sort_select(selected_col):
+        if selected_col != "Sort by":
+            filters = {}
+            if fee_type_var.get() != "Select":
+                filters["fee_type"] = fee_type_var.get()
+            if due_date_var.get():
+                filters["due_date"] = due_date_var.get()
+            if min_amount_var.get():
+                filters["min_amount"] = min_amount_var.get()
+            if max_amount_var.get():
+                filters["max_amount"] = max_amount_var.get()
+            refresh_fee_table(root, cur, filters, selected_col, org_id)
+
+    sort_menu = tk.OptionMenu(right_tools_frame, sort_var, *sort_options, command=on_sort_select)
     sort_menu.config(relief="flat", font=modern_font, bg="white", highlightthickness=1, borderwidth=1)
     sort_menu.pack(side="left")
 
@@ -119,9 +123,14 @@ def show_fee_table(root, cur, org_id):
     reset_btn.pack(side="left", padx=10)
     style_button(reset_btn)
 
+    # Treeview
     tree_frame = tk.Frame(root)
     tree_frame.pack(fill="both", expand=True)
 
+    columns = (
+        "Fee Id", "Member Id", "Full Name", "Academic Year Issued", "Semester Issued",
+        "Due Date", "Fee Type", "Amount (Php)", "Status", "Date Paid"
+    )
     tree = ttk.Treeview(tree_frame, columns=columns, show="headings", style="Modern.Treeview")
     tree.pack(fill="both", expand=True)
 
@@ -233,36 +242,43 @@ def show_fee_table(root, cur, org_id):
 
 def refresh_fee_table(root, cur, filters, sort_by, org_id):
     query = """SELECT 
-    fee_id, 
-    mem_id, 
-    CONCAT(first_name, ' ', surname) AS full_name, 
-    academic_year_issued, 
-    semester_issued, 
-    due_date, 
-    fee_type, 
-    amount, 
-    status, 
-    date_paid 
-FROM 
-    fee 
-NATURAL JOIN 
-    member 
-WHERE 
-    org_id = %s"""
-    params = [org_id]
+        fee_id, 
+        mem_id, 
+        CONCAT(first_name, ' ', surname) AS full_name, 
+        academic_year_issued, 
+        semester_issued, 
+        due_date, 
+        fee_type, 
+        amount, 
+        status, 
+        date_paid 
+        FROM 
+            fee 
+        NATURAL JOIN 
+            member"""
+    
+    conditions = []
+    params = []
+
+    if org_id != 0:
+        conditions.append("org_id = %s")
+        params.append(org_id)
 
     if filters.get("fee_type"):
-        query += " AND fee_type = %s"
+        conditions.append("fee_type = %s")
         params.append(filters["fee_type"])
     if filters.get("due_date"):
-        query += " AND due_date = %s"
+        conditions.append("due_date = %s")
         params.append(filters["due_date"])
     if filters.get("min_amount"):
-        query += " AND amount >= %s"
+        conditions.append("amount >= %s")
         params.append(filters["min_amount"])
     if filters.get("max_amount"):
-        query += " AND amount <= %s"
+        conditions.append("amount <= %s")
         params.append(filters["max_amount"])
+
+    if conditions:
+        query += " WHERE " + " AND ".join(conditions)
 
     if sort_by and sort_by != "Sort by":
         query += f" ORDER BY {sort_by}"
