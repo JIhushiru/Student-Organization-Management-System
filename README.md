@@ -1,13 +1,13 @@
 # 127-project
 CMSC 127 Final Project
 
-Admin Account\n
-username: superadmin\n
-password: password<\n
+Admin Account<br/>
+username: superadmin<br/>
+password: password<br/>
 
-President Account\n
-username: pres\n
-password: pres\n
+President Account<br/>
+username: pres<br/>
+password: pres<br/>
 
 Run only run_studorg located on the main file on the first run to generate database
 
