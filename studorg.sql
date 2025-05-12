@@ -5,7 +5,7 @@ USE studorg;
 
 -- DDL: Table Creation
 CREATE TABLE MEMBER (
-mem_id INT(4) PRIMARY KEY,
+mem_id INT(4) AUTO_INCREMENT PRIMARY KEY,
 first_name VARCHAR(20) NOT NULL,
 second_name VARCHAR(20),
 surname VARCHAR(20) NOT NULL,

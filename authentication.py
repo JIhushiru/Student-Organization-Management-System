@@ -5,8 +5,8 @@ def hash_password(password):
     hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
     return hashed_password.decode('utf-8')
 
-def is_superadmin(username):
-    return username == "superadmin"
+def is_admin(organization):
+    return organization == None
 
 def authenticate_user(action, username, password):
     try:
@@ -25,7 +25,7 @@ def authenticate_user(action, username, password):
                 if bcrypt.checkpw(password.encode('utf-8'), stored_hash.encode('utf-8')):
                     organization = user_record[2]  # This is where we get the organization
                     org_id = user_record[3] if user_record[3] else 0  # If org_id is None, set to 0
-                    if is_superadmin(username):
+                    if is_admin(organization):
                         return "SUPERADMIN_LOGIN_SUCCESS"
                     else:
                         return ("LOGIN_SUCCESS", organization, org_id)

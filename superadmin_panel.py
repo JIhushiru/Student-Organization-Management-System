@@ -78,8 +78,7 @@ def open_superadmin_panel(root):
 
                 # Refresh org buttons and combobox
                 populate_organization_buttons()
-                org_combobox_autocreate['values'] = [org[1] for org in fetch_organizations()]
-
+                
             except mariadb.Error as e:
                 messagebox.showerror("Database Error", f"Failed to add organization:\n{e}")
             finally:
@@ -101,24 +100,23 @@ def open_superadmin_panel(root):
     create_tab = ttk.Frame(tab)
     tab.add(create_tab, text='Create User')
 
-    autocreate_tab = ttk.Frame(tab)
-    tab.add(autocreate_tab, text='Autocreate User')
-
     tab.pack(expand=1, fill="both")
     
     list_frame = ttk.Frame(user_tab)
     list_frame.pack(pady=20, fill="both", expand=True)
     
     # Create treeview for users
-    tree = ttk.Treeview(list_frame, columns=("ID", "Username", "Organization"), show="headings")
+    tree = ttk.Treeview(list_frame, columns=("ID", "Username", "User Type", "Organization"), show="headings")
     tree.heading("ID", text="ID")
     tree.heading("Username", text="Username")
+    tree.heading("User Type", text="User Type")
     tree.heading("Organization", text="Organization")
-    # tree.heading("Org", text="Username")
+
     tree.column("ID", width=50)
     tree.column("Username", width=200)
+    tree.column("User Type", width=100)
     tree.column("Organization", width=50)
-    # tree.column("Org", width=200)
+
     
     scrollbar = ttk.Scrollbar(list_frame, orient="vertical", command=tree.yview)
     tree.configure(yscrollcommand=scrollbar.set)
@@ -136,7 +134,7 @@ def open_superadmin_panel(root):
             cur = conn.cursor()
             
             # Get all users except superadmin
-            cur.execute("SELECT user_id, username, organization FROM userdata WHERE username != 'superadmin'")
+            cur.execute("SELECT user_id, username, user_type, organization FROM userdata WHERE username != 'superadmin'")
             
             for user in cur:
                 tree.insert("", "end", values=user)
@@ -219,79 +217,6 @@ def open_superadmin_panel(root):
     create_frame = ttk.Frame(create_tab)
     create_frame.pack(pady=50)
     
-    def autocreate_user():
-        organization = org_combobox_autocreate.get()
-
-        # Validate input
-        if not organization:
-            messagebox.showwarning("Input Required", "Organization is required.")
-            return
-
-        try:
-            conn = get_connection()
-            cur = conn.cursor()
-
-            # Get the org_id for the selected organization
-            cur.execute("SELECT org_id FROM organization WHERE org_name = ?", (organization,))
-            org_id = cur.fetchone()
-            
-            if not org_id:
-                messagebox.showwarning("Invalid Organization", "Organization does not exist.")
-                conn.close()
-                return
-            
-            org_id = org_id[0] 
-            
-            # Get the mem_ids for members associated with the selected organization
-            cur.execute("""
-                SELECT m.mem_id, m.deg_prog 
-                FROM member m
-                JOIN serves s ON m.mem_id = s.mem_id
-                WHERE s.org_id = ?
-            """, (org_id,))
-            
-            mem_ids = cur.fetchall()
-
-            
-            # Iterate over the mem_ids and check if they already have userdata
-            for mem_id, deg_prog in mem_ids:
-                # Check if user already exists in userdata
-                cur.execute("SELECT * FROM userdata WHERE mem_id = ?", (mem_id,))
-                existing_user = cur.fetchone()
-                
-                if not existing_user:  
-                    username = f"{mem_id}_{deg_prog}"
-                    cur.execute("SELECT * FROM userdata WHERE username = ?", (username,))
-                    if cur.fetchall():
-                        messagebox.showwarning("Username Exists", f"Username '{username}' already exists.")
-                        continue  # Skip if the username already exists in userdata
-                    
-                    # Default password is "pass"
-                    hashed_password = hash_password("pass")
-
-                    # Insert the new user into userdata table
-                    cur.execute("INSERT INTO userdata (username, password, mem_id) VALUES (?, ?, ?)", (username, hashed_password, mem_id))
-                    conn.commit()
-
-                    messagebox.showinfo("Success", f"User '{username}' has been created.")
-
-            conn.close()
-
-        except Exception as e:
-            messagebox.showerror("Database Error", f"Failed to autocreate user: {e}")
-
-
-    # Autocreate User Tab
-    autocreate_frame = ttk.Frame(autocreate_tab)
-    autocreate_frame.pack(pady=50)
-    
-    # Organization Combobox for Autocreate
-    ttk.Label(autocreate_frame, text="Organization:").grid(row=0, column=0, padx=10, pady=10, sticky="e")
-    organizations = fetch_organizations()
-    org_combobox_autocreate = ttk.Combobox(autocreate_frame, values=[org[1] for org in organizations], width=30)
-    org_combobox_autocreate.grid(row=0, column=1, padx=10, pady=10)
-
-    ttk.Button(autocreate_frame, text="Autocreate User", command=autocreate_user).grid(row=1, column=0, columnspan=2, pady=20)
 
     # Username
     ttk.Label(create_frame, text="Username:").grid(row=0, column=0, padx=10, pady=10, sticky="e")
@@ -305,7 +230,7 @@ def open_superadmin_panel(root):
 
     ttk.Label(create_frame, text="Organization:").grid(row=2, column=0, padx=10, pady=10, sticky="e")
     organizations = fetch_organizations()
-    org_combobox = ttk.Combobox(create_frame, values=[org[1] for org in organizations], width=30)
+    org_combobox = ttk.Combobox(create_frame, values=["None"] + [org[1] for org in organizations], width=30)
     org_combobox.grid(row=2, column=1, padx=10, pady=10)
 
     # User Type
@@ -321,10 +246,15 @@ def open_superadmin_panel(root):
         user_type = user_type_combobox.get()
         
         # Validate input
-        if not username or not password or not organization or not user_type:
+        if not username or not password or not user_type:
             messagebox.showwarning("Input Required", "All fields are required.")
             return
-        
+
+        # If user is an admin, set organization to None
+        if user_type == "admin":
+            organization = None
+            org_combobox.set('')  # Clear the combobox value when admin is selected
+
         # Check if username already exists
         try:
             conn = get_connection()
@@ -343,20 +273,19 @@ def open_superadmin_panel(root):
             conn.commit()
 
             # Success message
-            messagebox.showinfo("Success", f"User '{username}' has been created and assigned to '{organization}'")
+            messagebox.showinfo("Success", f"User '{username}' has been created as an {user_type}.")
 
-            
             # Clear the input fields
             new_username.delete(0, tk.END)
             new_password.delete(0, tk.END)
-            org_combobox.delete(0, tk.END)
-            user_type_combobox.delete(0, tk.END)
+            org_combobox.set('')  # Reset combobox
+            user_type_combobox.set('admin')  # Reset user type to admin
 
-            load_users()  # Refresh the user list (if you have a function to load users)
+            load_users()  # Refresh the user list
 
         except Exception as e:
             messagebox.showerror("Database Error", f"Failed to create user: {e}")
-                
+            
     
     # Create button
     ttk.Button(create_frame, text="Create User", command=create_user).grid(row=10, column=0, columnspan=2, pady=20)

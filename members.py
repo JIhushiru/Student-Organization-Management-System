@@ -227,6 +227,107 @@ def show_member_table(root, cur, org_id):
         save_btn.grid(row=len(entries), column=0, columnspan=2, pady=10)
         style_button(save_btn)
 
+    def add_member(root, cur, org_id):
+        # Create a new window to add a member
+        add_window = tk.Toplevel(root)
+        add_window.title("Add Member")
+        
+        # Create the labels and entry fields
+        tk.Label(add_window, text="First Name").grid(row=0, column=0)
+        new_first_name = tk.Entry(add_window)
+        new_first_name.grid(row=0, column=1)
+        
+        tk.Label(add_window, text="Second Name").grid(row=1, column=0)
+        new_second_name = tk.Entry(add_window)
+        new_second_name.grid(row=1, column=1)
+        
+        tk.Label(add_window, text="Surname").grid(row=2, column=0)
+        new_surname = tk.Entry(add_window)
+        new_surname.grid(row=2, column=1)
+        
+        tk.Label(add_window, text="Email").grid(row=3, column=0)
+        new_email = tk.Entry(add_window)
+        new_email.grid(row=3, column=1)
+        
+        tk.Label(add_window, text="Degree Program").grid(row=4, column=0)
+        new_deg_prog = tk.Entry(add_window)
+        new_deg_prog.grid(row=4, column=1)
+        
+        tk.Label(add_window, text="Year of Membership").grid(row=5, column=0)
+        new_year_mem = tk.Entry(add_window)
+        new_year_mem.grid(row=5, column=1)
+        
+        tk.Label(add_window, text="Gender (M/F)").grid(row=6, column=0)
+        new_gender = tk.Entry(add_window)
+        new_gender.grid(row=6, column=1)
+        
+        tk.Label(add_window, text="Batch").grid(row=7, column=0)
+        new_batch = tk.Entry(add_window)
+        new_batch.grid(row=7, column=1)
+        
+        tk.Label(add_window, text="Role").grid(row=8, column=0)
+        new_role = tk.Entry(add_window)
+        new_role.grid(row=8, column=1)
+        
+        tk.Label(add_window, text="Committee").grid(row=9, column=0)
+        new_committee = tk.Entry(add_window)
+        new_committee.grid(row=9, column=1)
+        
+        tk.Label(add_window, text="Semester").grid(row=10, column=0)
+        new_semester = ttk.Combobox(add_window, values=["1st", "2nd", "Midyear"])
+        new_semester.grid(row=10, column=1)
+        
+        tk.Label(add_window, text="Academic Year").grid(row=11, column=0)
+        new_academic_year = tk.Entry(add_window)
+        new_academic_year.grid(row=11, column=1)
+
+        def save_new_member(root, cur, org_id):
+            # Gather all input values
+            first_name = new_first_name.get()
+            second_name = new_second_name.get()
+            surname = new_surname.get()
+            email = new_email.get()
+            deg_prog = new_deg_prog.get()
+            year_mem = new_year_mem.get()
+            gender = new_gender.get()
+            batch = new_batch.get()
+            role = new_role.get()
+            committee = new_committee.get()
+            semester = new_semester.get()
+            academic_year = new_academic_year.get()
+
+            # Insert member into the MEMBER table (mem_id is auto-incremented)
+            try:
+                cur.execute("""
+                    INSERT INTO member (first_name, second_name, surname, email, deg_prog, year_mem, gender, batch) 
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                """, (first_name, second_name, surname, email, deg_prog, year_mem, gender, batch))
+                
+                # Get the last inserted mem_id
+                cur.execute("SELECT LAST_INSERT_ID()")
+                mem_id = cur.fetchone()[0]
+                
+                # Insert into SERVES table with the provided role, committee, semester, and academic year
+                cur.execute("""
+                    INSERT INTO serves (mem_id, org_id, role, status, committee, semester, academic_year) 
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)
+                """, (mem_id, org_id, role, "Active", committee, semester, academic_year))
+
+                # Commit the changes and refresh the table
+                cur.connection.commit()
+                refresh_member_table(root, cur, {}, "", org_id)
+                add_window.destroy()  # Close the window after saving
+            except Exception as e:
+                messagebox.showerror("Error", str(e))  # Show an error message if something goes wrong
+
+        # Create a button to save the member data
+        save_button = tk.Button(add_window, text="Save Member", command=lambda: save_new_member(root, cur, org_id))
+        save_button.grid(row=12, column=0, columnspan=2)
+
+    add_btn = tk.Button(button_frame, text="Add Member", command=lambda: add_member(root, cur, org_id))
+    add_btn.pack(side="left", padx=10)
+    style_button(add_btn)
+
     edit_btn = tk.Button(button_frame, text="Edit", command=edit_selected)
     edit_btn.pack(side="left", padx=10)
     style_button(edit_btn)
