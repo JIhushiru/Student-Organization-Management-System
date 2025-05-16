@@ -85,8 +85,8 @@ def show_member_table(root, cur, org_id):
 
     tk.Label(right_tools_frame, text="Sort by:", bg=main_area_bg).pack(side="left", padx=5)
     sort_options = [
-        "mem_id", "first_name", "second_name", "surname", "email",
-        "deg_prog", "year_mem", "gender", "batch"
+        "mem_id", "first_name", "second_name", "surname",
+        "batch", "committee"
     ]
 
     def on_sort_select(selected_col):
@@ -123,7 +123,7 @@ def show_member_table(root, cur, org_id):
     tree_frame = tk.Frame(root)
     tree_frame.pack(fill="both", expand=True)
 
-    columns = ("Member Id", "First Name", "Second Name", "Surname", "email", "Degree Program", "Year of Membership", "Sex", "Batch")
+    columns = ("Member Id", "Name", "Role", "Status", "Gender", "Degree Program", "Batch", "Committee")
     tree = ttk.Treeview(tree_frame, columns=columns, show="headings", style="Modern.Treeview")
     tree.pack(fill="both", expand=True)
 
@@ -340,7 +340,7 @@ def show_member_table(root, cur, org_id):
 
 
 def refresh_member_table(root, cur, filters, sort_by, org_id):
-    base_query = "SELECT * FROM member NATURAL JOIN serves"
+    base_query = "SELECT mem_id, concat(surname,', ',first_name,' ', second_name), role, status, gender, deg_prog, academic_year, committee FROM member NATURAL JOIN serves"
     conditions = []
     params = []
 

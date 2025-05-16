@@ -75,30 +75,132 @@ def open_president_panel(root, admin, org_name, org_id):
     main_area = tk.Frame(root, bg=main_area_bg)
     main_area.pack(expand=True, fill="both")
 
+    def display_report(parent, rows, columns):
+        import tkinter.ttk as ttk
+        import tkinter.font as tkFont
+
+        tree = ttk.Treeview(parent, columns=columns, show="headings")
+
+        # Create a font object to measure text
+        font = tkFont.Font()
+
+        for col in columns:
+            tree.heading(col, text=col)
+
+            # Calculate maximum width based on column title
+            max_width = font.measure(col)
+
+            # Also check content width for each column
+            col_index = columns.index(col)
+            for row in rows:
+                cell_value = str(row[col_index])
+                cell_width = font.measure(cell_value)
+                max_width = max(max_width, cell_width)
+
+            # Set column width with padding
+            tree.column(col, width=max_width + 20, anchor="center")
+
+        for row in rows:
+            tree.insert("", "end", values=row)
+
+        tree.pack(expand=True, fill="both", padx=20, pady=10)
+
+
     # Function to handle switching views
     def load_table(table_name):
         # Clear main content area
         for widget in main_area.winfo_children():
             widget.destroy()
         top_nav_title.config(text=org_name)
+
         if table_name == "home":
-            # Update the title in the top navigation bar
             home_header = tk.Label(main_area, text=org_name,
-                                   font=("Segoe UI", 40, "bold"), fg="#2C3E50", bg=main_area_bg)  # Charcoal text for professional tone
+                                font=("Segoe UI", 40, "bold"), fg="#2C3E50", bg=main_area_bg)
             home_header.pack(pady=10)
 
             subtext = tk.Label(main_area, text="Manage Members, Fees, and More!",
-                               font=("Segoe UI", 14), fg=primary_color, bg=main_area_bg)  # Soft blue subtext for a modern touch
+                            font=("Segoe UI", 14), fg=primary_color, bg=main_area_bg)
             subtext.pack(pady=5)
 
-        else:
-            if table_name == "member":
-                show_member_table(main_area, cur, org_id)
-            elif table_name == "fee":
-                show_fee_table(main_area, cur, org_id)
+            # Frame to hold report buttons
+            report_frame = tk.Frame(main_area, bg=main_area_bg)
+            report_frame.pack(pady=20)
+
+            report_buttons = [
+                ("Unpaid Membership Fees", "unpaid"),
+                ("Member Dues", "member_dues"),
+                ("Executive Committee", "exec"),
+                ("List of Presidents", "roles_per_year"),
+                ("Late Payments", "late_payments"),
+                ("Active %", "percentage"),
+                ("Alumni", "alumni"),
+                ("Fee Summary", "fee_summary"),
+                ("Top Debtors", "highest_debt")
+            ]
+
+            def load_report(report_key):
+                load_table(report_key)
+
+            for i, (text, key) in enumerate(report_buttons):
+                btn = tk.Button(report_frame, text=text, command=lambda k=key: load_report(k),
+                                bg=button_bg, fg="white", font=button_font, relief="raised", bd=1, padx=10, pady=5)
+                btn.grid(row=i // 2, column=i % 2, padx=10, pady=5, sticky="ew")
+
+        elif table_name == "member":
+            show_member_table(main_area, cur, org_id)
+        elif table_name == "fee":
+            show_fee_table(main_area, cur, org_id)
+
+        # Report view logic
+        elif table_name == "unpaid":
+            cur.execute("SELECT mem_id, concat(surname,', ',first_name,' ', second_name), due_date FROM Unpaid WHERE org_name = %s", (org_name,))
+            rows = cur.fetchall()
+            display_report(main_area, rows, ["ID", "Name", "Due Date"])
+
+        elif table_name == "member_dues":
+            cur.execute("SELECT org_name, fee_type, amount, due_date FROM Unpaid WHERE surname = 'Mendoza' AND org_name = %s", (org_name,))
+            rows = cur.fetchall()
+            display_report(main_area, rows, ["Org", "Fee Type", "Amount", "Due Date"])
+
+        elif table_name == "exec":
+            cur.execute("SELECT mem_id, concat(surname,', ',first_name,' ', second_name), role, status FROM Exec WHERE org_name = %s", (org_name,))
+            rows = cur.fetchall()
+            display_report(main_area, rows, ["ID", "Role", "Status"])
+
+        elif table_name == "roles_per_year":
+            cur.execute("SELECT mem_id, concat(surname,', ',first_name,' ', second_name), academic_year, semester FROM RolesPerYear WHERE org_name = %s AND role = 'President'", (org_name,))
+            rows = cur.fetchall()
+            display_report(main_area, rows, ["Mem ID", "Name", "Year", "Semester"])
+
+        elif table_name == "late_payments":
+            cur.execute("SELECT mem_id, concat(surname,', ',first_name,' ', second_name), fee_type, amount, academic_year_issued, semester_issued, due_date, date_paid FROM LatePayments WHERE org_name = %s", (org_name,))
+            rows = cur.fetchall()
+            display_report(main_area, rows, ["ID", "Name", "Type", "Amount", "Year", "Semester", "Due Date", "Date Paid"])
+
+        elif table_name == "percentage":
+            cur.execute("SELECT semester, academic_year, num_members, active_members, active_percentage FROM Percentage WHERE org_id = %s ORDER BY academic_year DESC", (org_id,))
+            rows = cur.fetchall()
+            display_report(main_area, rows, ["Semester", "Year", "Total Members", "# Active", "% Active"])
+
+        elif table_name == "alumni":
+            cur.execute("SELECT mem_id, concat(surname,', ',first_name,' ', second_name), academic_year, semester FROM Alumni WHERE org_name = %s", (org_name,))
+            rows = cur.fetchall()
+            display_report(main_area, rows, ["Mem ID", "Name", "Year", "Semester"])
+
+        elif table_name == "fee_summary":
+            cur.execute("SELECT * FROM OrgFeesSummary WHERE org_name = %s", (org_name,))
+            rows = cur.fetchall()
+            display_report(main_area, rows, ["Org", "Total Paid", "Total Unpaid", "Date Paid"])
+
+        elif table_name == "highest_debt":
+            cur.execute("SELECT * FROM HighestDebt WHERE org_name = %s AND academic_year_issued = '2024-2025' AND semester_issued = '2nd'", (org_name,))
+            rows = cur.fetchall()
+            display_report(main_area, rows, ["Org", "ID", "Surname", "First", "Second", "Sem", "Year", "Total Unpaid"])
 
     # Load homepage by default
     load_table("home")
+
+
 
     # Back to Superadmin button (right side)
     if(admin):
