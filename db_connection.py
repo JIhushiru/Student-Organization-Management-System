@@ -4,7 +4,7 @@ def get_connection():
     try:
         return mariadb.connect(
             user="root",
-            password="kurt",
+            password="251728",
             host="localhost",
             database="studorg"
         )

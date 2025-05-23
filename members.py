@@ -27,7 +27,6 @@ def style_button(btn):
         pady=3,
         cursor="hand2"
     )
-
     def on_enter(e):
         btn['background'] = button_hover_bg
 

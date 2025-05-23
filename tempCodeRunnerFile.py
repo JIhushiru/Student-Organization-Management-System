@@ -7,6 +7,7 @@ from db_connection import run_studorg
 from authentication import authenticate_user
 from superadmin_panel import open_superadmin_panel
 from president_panel import open_president_panel
+from member_fee_panel import show_member_fee_panel  # Add this import
 
 # SERVER
 def server_program():
@@ -78,7 +79,7 @@ def login():
         messagebox.showerror("Error", "Please enter username and password.")
         return
     
-    status, org_name, org_id = send_request("login", username, password)  # Include org_id in the response
+    status, org_name, org_id = send_request("login", username, password)
     
     if status == "SUPERADMIN_LOGIN_SUCCESS":
         title_label.pack_forget()
@@ -89,11 +90,14 @@ def login():
         title_label.pack_forget()
         form_frame.pack_forget()
         button_frame.pack_forget()
-        open_president_panel(root, False, org_name, org_id)  # Pass org_id to the president panel
+        open_president_panel(root, False, org_name, org_id)
+    elif status == "MEMBER_LOGIN_SUCCESS":
+        title_label.pack_forget()
+        form_frame.pack_forget()
+        button_frame.pack_forget()
+        show_member_fee_panel(root, org_id)  # This assumes org_id is actually mem_id for members
     else:
         messagebox.showinfo("Login Result", status)
-
-
 
 def clear_fields():
     entry_username.delete(0, tk.END)

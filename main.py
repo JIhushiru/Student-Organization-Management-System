@@ -7,6 +7,7 @@ from db_connection import run_studorg
 from authentication import authenticate_user
 from superadmin_panel import open_superadmin_panel
 from president_panel import open_president_panel
+from member_fee_panel import show_member_fee_panel
 
 # SERVER
 def server_program():
@@ -90,6 +91,11 @@ def login():
         form_frame.pack_forget()
         button_frame.pack_forget()
         open_president_panel(root, False, org_name, org_id)  # Pass org_id to the president panel
+    elif status == "MEMBER_LOGIN_SUCCESS":
+        title_label.pack_forget()
+        form_frame.pack_forget()
+        button_frame.pack_forget()
+        show_member_fee_panel(root, org_id)
     else:
         messagebox.showinfo("Login Result", status)
 
@@ -99,7 +105,7 @@ def clear_fields():
     entry_username.delete(0, tk.END)
     entry_password.delete(0, tk.END)
 
-run_studorg() #Use only on first run
+run_studorg() #Use only on first run 
 
 window_width = 1300
 window_height = 650
