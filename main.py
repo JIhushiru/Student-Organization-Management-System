@@ -3,7 +3,7 @@ import socket
 import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
-from db_connection import run_studorg
+from db_connection import run_studorg, run_views
 from authentication import authenticate_user
 from superadmin_panel import open_superadmin_panel
 from president_panel import open_president_panel
@@ -106,6 +106,7 @@ def clear_fields():
     entry_password.delete(0, tk.END)
 
 run_studorg() #Use only on first run 
+run_views()
 
 window_width = 1300
 window_height = 650

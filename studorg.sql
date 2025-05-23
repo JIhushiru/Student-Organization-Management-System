@@ -29,7 +29,7 @@ org_id INT,
 academic_year_issued VARCHAR(9),
 semester_issued ENUM('1st', '2nd', 'Midyear'),
 due_date DATE NOT NULL,
-fee_type VARCHAR(50) NOT NULL,
+fee_type ENUM('Semestral', 'Membership'),
 amount DECIMAL(10,2) NOT NULL,
 status ENUM('Paid', 'Unpaid'),
 date_paid DATE,
@@ -39,16 +39,16 @@ FOREIGN KEY (org_id) REFERENCES ORGANIZATION(org_id)
 	
 
 CREATE TABLE SERVES (
-mem_id INT,
-org_id INT,
-role VARCHAR(50),
-status VARCHAR(10),
-committee VARCHAR(20),
-semester ENUM('1st', '2nd', 'Midyear'),
-academic_year VARCHAR(9),
-PRIMARY KEY (mem_id, org_id, academic_year, semester),
-FOREIGN KEY (mem_id) REFERENCES MEMBER(mem_id),
-FOREIGN KEY (org_id) REFERENCES ORGANIZATION(org_id)
+	mem_id INT,
+	org_id INT,
+	role VARCHAR(50),
+	status ENUM('Active', 'Inactive', 'Expelled', 'Suspended', 'Alumni'),
+	committee VARCHAR(20),
+	semester ENUM('1st', '2nd', 'Midyear'),
+	academic_year VARCHAR(9),
+	PRIMARY KEY (mem_id, org_id, academic_year, semester),
+	FOREIGN KEY (mem_id) REFERENCES MEMBER(mem_id),
+	FOREIGN KEY (org_id) REFERENCES ORGANIZATION(org_id)
 );
 
 CREATE TABLE userdata (
@@ -62,7 +62,7 @@ CREATE TABLE userdata (
 );
 
 SHOW tables;
-
+ 
 -- Insert members (5x expanded with random data)
 INSERT INTO MEMBER VALUES
 (1001, 'Juan', 'Carlos', 'Reyes', 'jcreyes@up.edu.ph', 'BSCS', 2022, 'M', 2020),
@@ -84,47 +84,69 @@ INSERT INTO MEMBER VALUES
 (1017, 'Marco', 'Antonio', 'Hernandez', 'mahernandez@up.edu.ph', 'BSPHYS', 2024, 'M', 2023),
 (1018, 'Victoria', 'Elena', 'Lopez', 'velopez@up.edu.ph', 'BSCOM', 2025, 'F', 2024),
 (1019, 'Alejandro', 'Jose', 'Rodriguez', 'ajr@up.edu.ph', 'BSCIV', 2023, 'M', 2021),
-(1020, 'Gabriela', 'Ana', 'Martinez', 'gamartinez@up.edu.ph', 'BSSTAT', 2023, 'F', 2022);
+(1020, 'Gabriela', 'Ana', 'Martinez', 'gamartinez@up.edu.ph', 'BSSTAT', 2023, 'F', 2022),
+(1021, 'John', 'Michael', 'Del Rosario', 'jmrosario@up.edu.ph', 'BSCS', 2021, 'M', 2020),
+(1022, 'Christine', 'Mae', 'Lim', 'clim@up.edu.ph', 'BSSTAT', 2023, 'F', 2021),
+(1023, 'Nathan', 'Lee', 'Tan', 'nltan@up.edu.ph', 'BSAMAT', 2024, 'M', 2022),
+(1024, 'Clarisse', 'Joy', 'Yu', 'cjy@up.edu.ph', 'BSBIO', 2022, 'F', 2020),
+(1025, 'Emmanuel', 'Paul', 'Zamora', 'epzamora@up.edu.ph', 'BSME', 2025, 'M', 2024),
+(1026, 'Raquel', 'Marie', 'Soriano', 'rmsoriano@up.edu.ph', 'BSCS', 2022, 'F', 2021),
+(1027, 'Darren', 'Victor', 'Chua', 'dvchua@up.edu.ph', 'BSCHE', 2023, 'M', 2022),
+(1028, 'Louise', 'Andrea', 'Uy', 'lauy@up.edu.ph', 'BSSTAT', 2024, 'F', 2023),
+(1029, 'Hannah', 'Ruth', 'Bautista', 'hrbautista@up.edu.ph', 'BSBIO', 2025, 'F', 2024),
+(1030, 'Noel', 'James', 'Flores', 'njflores@up.edu.ph', 'BSAMAT', 2021, 'M', 2020);
+
 
 -- Insert organizations (5x expanded with random data)
 INSERT INTO ORGANIZATION VALUES
-(1, 'CMCS_ORG', 'Academic'),
-(2, 'STAT_ORG', 'Academic'),
-(3, 'BIO_ORG', 'Academic'),
-(4, 'AMAT_ORG', 'Academic'),
-(5, 'SOCIO_ORG', 'Socio-Civic'),
-(6, 'VARSI_ORG', 'Varsitarian'),
-(7, 'ENGG_ORG', 'Academic'),
-(8, 'CHEM_ORG', 'Academic'),
-(9, 'LAW_ORG', 'Academic'),
-(10, 'MATH_ORG', 'Academic'),
-(11, 'LIT_ORG', 'Cultural'),
-(12, 'MED_ORG', 'Academic');
+(1, 'Computer Science Organization', 'Academic'),
+(2, 'Statistics Organization', 'Academic'),
+(3, 'Biology Organization', 'Academic'),
+(4, 'Applied Math Organization', 'Academic'),
+(5, 'FRA Club', 'Socio-Civic'),
+(6, 'Basketball Club', 'Sports'),
+(7, 'Engineering Organization', 'Academic'),
+(8, 'Chemistry Organization', 'Academic'),
+(9, 'Volleyball Club', 'Sports'),
+(10, 'Mathematics Organization', 'Academic'),
+(11, 'Philosophical Organization', 'Academic'),
+(12, 'Table Tennis Club', 'Sports');
 
--- Insert SERVES (5x expanded with random data)
+-- Insert SERVES 
 INSERT INTO SERVES VALUES
 (1001, 1, 'President', 'Active', 'Executive', '1st', '2024-2025'),
 (1002, 2, 'Member', 'Inactive', 'Publications', '2nd', '2024-2025'),
-(1003, 4, 'Member', 'Active', 'Membership', '2nd', '2024-2025'),
+(1003, 4, NULL, 'Expelled', NULL, '2nd', '2024-2025'),
 (1004, 5, 'Treasurer', 'Active', 'Executive', '1st', '2024-2025'),
 (1005, 3, 'Member', 'Active', 'Legislative', '1st', '2024-2025'),
 (1006, 6, 'Vice President', 'Active', 'Executive', '1st', '2024-2025'),
 (1007, 1, 'Member', 'Inactive', 'Finance', '2nd', '2024-2025'),
-(1008, 5, 'Member', 'Inactive', 'Publications', '2nd', '2024-2025'),
+(1008, 5, NULL, 'Expelled', NULL, '2nd', '2024-2025'),
 (1009, 6, 'Secretary', 'Active', 'Executive', '1st', '2024-2025'),
-(1010, 2, 'Member', 'Active', 'External Affairs', '2nd', '2024-2025'),
+(1010, 2, NULL, 'Alumni', NULL, '2nd', '2024-2025'),
 (1011, 1, 'Member', 'Active', 'External Affairs', '2nd', '2024-2025'),
 (1012, 7, 'Member', 'Active', 'Events', '1st', '2024-2025'),
 (1013, 8, 'President', 'Active', 'Executive', '1st', '2024-2025'),
-(1014, 9, 'Member', 'Inactive', 'Public Relations', '2nd', '2024-2025'),
+(1014, 9, NULL, 'Alumni', NULL, '2nd', '2024-2025'),
 (1015, 10, 'Vice President', 'Active', 'Executive', '2nd', '2024-2025'),
 (1016, 11, 'Secretary', 'Active', 'Publications', '1st', '2024-2025'),
 (1017, 12, 'Member', 'Inactive', 'Membership', '2nd', '2024-2025'),
 (1018, 5, 'Member', 'Active', 'Finance', '1st', '2024-2025'),
-(1019, 7, 'Treasurer', 'Active', 'Executive', '2nd', '2024-2025'),
-(1020, 8, 'Member', 'Active', 'External Affairs', '1st', '2024-2025');
+(1019, 7, NULL, 'Suspended', NULL, '2nd', '2024-2025'),
+(1020, 8, NULL, 'Expelled', NULL, '1st', '2024-2025'),
+(1021, 1, 'Member', 'Active', 'Finance', '2nd', '2023-2024'),
+(1022, 2, NULL, 'Alumni', NULL, '1st', '2023-2024'),
+(1023, 4, 'Vice President', 'Active', 'Executive', '1st', '2024-2025'),
+(1024, 3, 'Member', 'Active', 'Membership', '2nd', '2023-2024'),
+(1025, 7, 'Secretary', 'Active', 'Executive', '2nd', '2024-2025'),
+(1026, 1, 'Treasurer', 'Active', 'Executive', '1st', '2023-2024'),
+(1027, 8, 'Member', 'Active', 'Publications', '1st', '2024-2025'),
+(1028, 2, 'Member', 'Inactive', 'Finance', '2nd', '2023-2024'),
+(1029, 3, NULL, 'Alumni', NULL, '2nd', '2024-2025'),
+(1030, 4, 'Member', 'Inactive', 'Legislative', '1st', '2023-2024');
 
--- Insert FEE (5x expanded with random data)
+
+-- Insert FEE
 INSERT INTO FEE VALUES
 (101, 1001, 1, '2024-2025', '2nd', '2025-01-01', 'Membership', 200.00, 'Paid', '2025-04-01'),
 (102, 1002, 2, '2024-2025', '2nd', '2025-01-01', 'Semestral', 150.00, 'Paid', '2025-04-10'),
@@ -140,13 +162,16 @@ INSERT INTO FEE VALUES
 (112, 1007, 1, '2024-2025', '1st', '2025-03-01', 'Membership', 200.00, 'Paid', '2024-12-12'),
 (113, 1010, 2, '2024-2025', '1st', '2025-03-01', 'Membership', 200.00, 'Unpaid', '2024-12-12'),
 (114, 1011, 1, '2024-2025', '1st', '2025-03-01', 'Membership', 200.00, 'Unpaid', '2024-12-12'),
--- Additional fees for new members
 (115, 1012, 7, '2024-2025', '1st', '2024-12-01', 'Membership', 200.00, 'Paid', '2025-01-15'),
 (116, 1013, 8, '2024-2025', '2nd', '2025-02-15', 'Semestral', 150.00, 'Paid', '2025-04-20'),
 (117, 1014, 9, '2024-2025', '2nd', '2025-03-10', 'Semestral', 150.00, 'Unpaid', NULL),
 (118, 1015, 10, '2024-2025', '1st', '2025-01-01', 'Semestral', 150.00, 'Paid', '2025-03-10'),
 (119, 1016, 11, '2024-2025', '1st', '2025-02-01', 'Membership', 200.00, 'Paid', '2025-02-15'),
-(120, 1017, 12, '2024-2025', '2nd', '2025-03-01', 'Membership', 200.00, 'Paid', '2025-03-05');
+(120, 1027, 8, '2024-2025', '1st', '2024-08-01', 'Semestral', 150.00, 'Paid', '2024-08-05'),
+(121, 1028, 2, '2023-2024', '2nd', '2024-01-20', 'Semestral', 150.00, 'Paid', '2024-02-01'),
+(122, 1029, 3, '2024-2025', '2nd', '2025-02-15', 'Membership', 200.00, 'Unpaid', NULL),
+(123, 1030, 4, '2023-2024', '1st', '2023-07-20', 'Membership', 200.00, 'Paid', '2023-07-25');
+
 
 
 
