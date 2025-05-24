@@ -115,12 +115,12 @@ def open_president_panel(root, admin, org_name, org_id):
         top_nav_title.config(text=org_name)
 
         if table_name == "home":
-            home_header = tk.Label(main_area, text=org_name,
-                                font=("Segoe UI", 40, "bold"), fg="#2C3E50", bg=main_area_bg)
-            home_header.pack(pady=10)
+            home_header = tk.Label(main_area, text="SUMMARY REPORTS",
+                                font=("Palatino Linotype", 40, "bold"), fg="#020325", bg=main_area_bg)
+            home_header.pack(pady=(10,1))
 
-            subtext = tk.Label(main_area, text="Manage Members, Fees, and More!",
-                            font=("Segoe UI", 14), fg=primary_color, bg=main_area_bg)
+            subtext = tk.Label(main_area, text="Members, Fees, and More!",
+                            font=("Arial", 14, "italic"), fg="#020325", bg=main_area_bg)
             subtext.pack(pady=5)
 
             # Frame to hold report buttons
