@@ -23,13 +23,12 @@ def open_president_panel(root, admin, org_name, org_id):
         ("View Fees", "fee"),
     ]
 
-    # COLOR SCHEME
+    # COLOR SCHEME AND FONTS
     primary_color = "#0078D4"
     button_bg = "#00A4EF"
     button_hover_bg = "#0063B1" 
     button_selected_bg = "#005A8D"  
     main_area_bg = "#FFFFFF"
-    
     title_font = ("Segoe UI", 16, "bold")
     button_font = ("Segoe UI", 12)
 
@@ -39,7 +38,7 @@ def open_president_panel(root, admin, org_name, org_id):
     top_nav.pack(side="top", fill="x")
     top_nav_title = tk.Label(top_nav, text=org_name, fg="white", bg=primary_color, font=title_font)
     top_nav_title.pack(side="left", padx=10)
-
+    
     # HOVER EFFECTS AND BUTTON SELECTION
     def on_enter(e):
         if e.widget["bg"] != button_selected_bg:
@@ -93,11 +92,9 @@ def open_president_panel(root, admin, org_name, org_id):
         for col in columns:
             tree.heading(col, text=col)
 
-            # Calculate maximum width based on column title
             max_width = font.measure(col)
-
-            # Also check content width for each column
             col_index = columns.index(col)
+            
             for row in rows:
                 cell_value = str(row[col_index])
                 cell_width = font.measure(cell_value)
@@ -425,37 +422,50 @@ def show_summary_reports_panel(root, on_report_click):
     for c in range(cols):
         content_frame.grid_columnconfigure(c, weight=1)
 
+
+# --- SMOOTH MODAL DIALOG FUNCTION ---
 def ctk_prompt(parent, title, fields):
     result = {}
 
     popup = ctk.CTkToplevel(parent)
     popup.title(title)
-    popup.geometry("350x180")
+    popup.geometry("380x200")
     popup.grab_set()
     popup.resizable(False, False)
+    popup.configure(fg_color="white")
 
-    frame = ctk.CTkFrame(popup, fg_color="white")
+    # DIALOGS
+    popup.update_idletasks()
+    parent.update_idletasks()
+    x = parent.winfo_rootx() + (parent.winfo_width() // 2) - 190
+    y = parent.winfo_rooty() + (parent.winfo_height() // 2) - 100
+    popup.geometry(f"+{x}+{y}")
+
+    frame = ctk.CTkFrame(popup, fg_color="white", corner_radius=15)
     frame.pack(fill="both", expand=True, padx=20, pady=20)
 
     vars = []
     for i, field in enumerate(fields):
-        ctk.CTkLabel(frame, text=field["label"] + ":", font=("Arial", 12), text_color="black").grid(row=i, column=0, sticky="w", pady=5)
+        ctk.CTkLabel(frame, text=field["label"] + ":", font=("Arial", 13), text_color="black").grid(row=i, column=0, sticky="w", pady=7, padx=5)
         if field["type"] == "combo":
             var = ctk.StringVar(value=field.get("default", "Select"))
             combo = ctk.CTkComboBox(frame, variable=var, values=field["options"], width=180)
-            combo.grid(row=i, column=1, pady=5)
+            combo.grid(row=i, column=1, pady=7, padx=5)
             vars.append(var)
         else:
             var = ctk.StringVar(value=field.get("default", ""))
             entry = ctk.CTkEntry(frame, textvariable=var, width=180)
-            entry.grid(row=i, column=1, pady=5)
+            entry.grid(row=i, column=1, pady=7, padx=5)
             vars.append(var)
+
+    error_label = ctk.CTkLabel(frame, text="", text_color="red", font=("Arial", 11))
+    error_label.grid(row=len(fields)+1, column=0, columnspan=2, pady=(5,0))
 
     def on_ok():
         for idx, field in enumerate(fields):
             val = vars[idx].get().strip()
             if not val or val == "Select":
-                ctk.CTkLabel(frame, text="All fields required.", text_color="red").grid(row=len(fields)+1, column=0, columnspan=2)
+                error_label.configure(text="All fields required.")
                 return
             result[field["label"]] = val
         popup.grab_release()
@@ -466,9 +476,9 @@ def ctk_prompt(parent, title, fields):
         popup.destroy()
 
     btn_frame = ctk.CTkFrame(frame, fg_color="white")
-    btn_frame.grid(row=len(fields), column=0, columnspan=2, pady=(10,0))
-    ctk.CTkButton(btn_frame, text="OK", command=on_ok, fg_color="#0078D4", text_color="white", width=80).pack(side="left", padx=5)
-    ctk.CTkButton(btn_frame, text="Cancel", command=on_cancel, fg_color="#c0392b", text_color="white", width=80).pack(side="left", padx=5)
+    btn_frame.grid(row=len(fields), column=0, columnspan=2, pady=(15,0))
+    ctk.CTkButton(btn_frame, text="OK", command=on_ok, fg_color="#0078D4", text_color="white", width=90).pack(side="left", padx=8)
+    ctk.CTkButton(btn_frame, text="Cancel", command=on_cancel, fg_color="#c0392b", text_color="white", width=90).pack(side="left", padx=8)
 
     popup.wait_window()
     return result if result else None

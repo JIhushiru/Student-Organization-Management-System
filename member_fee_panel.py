@@ -20,25 +20,6 @@ def show_member_fee_panel(root, member_id):
     top_nav_title = tk.Label(top_nav, text="Member Fee Panel", fg="white", bg=primary_color, font=title_font)
     top_nav_title.pack(side="left", padx=10)
 
-    # --- LOG OUT BUTTON ---
-    def logout():
-        for widget in root.winfo_children():
-            widget.destroy()
-        import main
-        main.main_frame.pack(fill="both", expand=True)
-
-    logout_btn = tk.Button(
-        top_nav,
-        text="Log Out",
-        command=logout,
-        fg="white",
-        bg="#c0392b",
-        font=button_font,
-        relief="flat",
-        bd=0
-    )
-    logout_btn.pack(side="right", padx=5, pady=2, ipady=5, ipadx=2)
-
     # --- MAIN AREA FRAME ---
     main_area = tk.Frame(root, bg=main_area_bg)
     main_area.pack(expand=True, fill="both")
@@ -81,7 +62,7 @@ def show_member_fee_panel(root, member_id):
     conn = get_connection()
     cur = conn.cursor()
 
-    unpaid_count = 0  # Track if there are unpaid fees
+    unpaid_count = 0
 
     try:
         cur.execute("""
