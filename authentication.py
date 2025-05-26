@@ -29,16 +29,6 @@ def authenticate_user(action, username, password):
                 if org_id is None:
                     org_id = 0
                 if bcrypt.checkpw(password.encode('utf-8'), stored_hash.encode('utf-8')):
-                    # organization = user_record[2]  # This is where we get the organization
-                    # org_id = user_record[3] if user_record[3] else 0  # If org_id is None, set to 0
-            #         if is_admin(organization):
-            #             return "SUPERADMIN_LOGIN_SUCCESS"
-            #         else:
-            #             return ("LOGIN_SUCCESS", organization, org_id)
-            #     else:
-            #         return "Login failed!"
-            # else:
-            #     return "User not found!"
                     if user_type == "admin":
                         return "SUPERADMIN_LOGIN_SUCCESS"
                     elif user_type == "president":

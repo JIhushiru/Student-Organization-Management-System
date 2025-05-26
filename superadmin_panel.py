@@ -561,7 +561,7 @@ def open_superadmin_panel(root):
                     fg_color=BUTTON_COLOR,
                     text_color=BUTTON_TEXT_COLOR).pack(side="left", padx=5)
 
-    # Initial Load
+    # REFRESH
     refresh_data()
 
     def on_close():

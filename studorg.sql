@@ -179,10 +179,40 @@ INSERT INTO FEE VALUES
 (122, 1029, 3, '2024-2025', '2nd', '2025-02-15', 'Membership', 200.00, 'Unpaid', NULL),
 (123, 1030, 4, '2023-2024', '1st', '2023-07-20', 'Membership', 200.00, 'Paid', '2023-07-25');
 
-
-
-
 INSERT INTO userdata (username, password, user_type, organization, mem_id) VALUES
 ('superadmin', '$2b$12$AHxFKMjQBZscM2gl1Resvepco341TN2Q9WztlNcvx0bO2MryKEnmm', 'admin', NULL, NULL),
 ('pres', '$2b$12$l.vNxZkiIMlA4zoPrB5YIeo05H54Yj2EFOArknAhy6vZV8YyDPe6e', 'president', 'Statistics Organization', NULL),
 ('member', '$2b$12$2NliramtyErVkEl5jnCD4u6WHDXh4nooBhcdqpJqVq9WdYw23ADlC', 'member', 'Computer Science Organization', 1001);
+
+CREATE OR REPLACE VIEW ExecCommittee AS
+SELECT
+    o.org_name,
+    m.mem_id,
+    m.surname,
+    m.first_name,
+    m.second_name,
+    s.role,
+    s.academic_year
+FROM serves s
+JOIN member m ON s.mem_id = m.mem_id
+JOIN organization o ON s.org_id = o.org_id
+WHERE s.role IN ('President', 'Vice President', 'Secretary', 'Treasurer', 'Auditor', 'PRO');
+
+CREATE OR REPLACE VIEW HighestDebt AS
+SELECT
+    o.org_name,
+    m.mem_id,
+    m.surname,
+    m.first_name,
+    m.second_name,
+    f.semester_issued,
+    f.academic_year_issued,
+    SUM(f.amount) AS total_unpaid
+FROM fee f
+JOIN member m ON f.mem_id = m.mem_id
+JOIN organization o ON f.org_id = o.org_id
+WHERE f.status = 'Unpaid'
+GROUP BY o.org_name, m.mem_id, f.semester_issued, f.academic_year_issued
+ORDER BY total_unpaid DESC;
+
+
