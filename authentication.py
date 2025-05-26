@@ -55,4 +55,3 @@ def authenticate_user(action, username, password):
         return "Invalid action"
     except Exception as e:
         return f"Error: {e}"
-
