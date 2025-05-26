@@ -25,8 +25,9 @@ def authenticate_user(action, username, password):
                 user_type = user_record[2]
                 organization = user_record[3]
                 mem_id = user_record[4]
-                org_id = user_record[5] if user_record[5] else 0  # If org_id is None, set to 0
-               
+                org_id = user_record[5]
+                if org_id is None:
+                    org_id = 0
                 if bcrypt.checkpw(password.encode('utf-8'), stored_hash.encode('utf-8')):
                     # organization = user_record[2]  # This is where we get the organization
                     # org_id = user_record[3] if user_record[3] else 0  # If org_id is None, set to 0

@@ -424,4 +424,3 @@ def refresh_member_table(root, cur, filters, sort_by, org_id):
         root.tree.delete(row)
     for member in members:
         root.tree.insert("", "end", values=member)
-
