@@ -196,6 +196,13 @@ def open_superadmin_panel(root):
             command=delete_selected,
             fg_color="#c0392b",hover_color="#1a1a40").pack(pady=10)
     # ------------------------------ User Functions----------------------------
+
+    def logout():
+        import main
+        confirm = messagebox.askyesno("Logout", "Are you sure you want to log out?")
+        if confirm:
+            root.destroy()
+
     # Add user function
     def show_add_user_form():
         add_window = ctk.CTkToplevel(root)
@@ -451,6 +458,13 @@ def open_superadmin_panel(root):
     ctk.CTkButton(sidebar_frame,
         text="Delete Admin",
         command=show_delete_user_dialog,
+        hover_color="#c33f31",
+        fg_color="#942d22",
+        text_color="white").pack(pady = (1,3), padx = 15)
+    
+    ctk.CTkButton(sidebar_frame,
+        text="Logout",
+        command=logout,
         hover_color="#c33f31",
         fg_color="#942d22",
         text_color="white").pack(pady=3, padx=15)
