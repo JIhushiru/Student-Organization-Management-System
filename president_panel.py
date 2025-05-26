@@ -271,10 +271,10 @@ def open_president_panel(root, admin, org_name, org_id):
 
     # Back to Superadmin button (right side)
     if(admin):
-                # Function to handle going back to superadmin panel
+        # Function to handle going back to superadmin panel
         def go_back():
             # Dynamically import superadmin panel to avoid circular import
-            from superadmin_panel import open_superadmin_panel  # <-- Import HERE
+            from superadmin_panel import open_superadmin_panel 
             # Clear current panel
             for widget in root.winfo_children():
                 widget.destroy()

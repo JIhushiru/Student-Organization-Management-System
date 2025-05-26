@@ -110,7 +110,14 @@ INSERT INTO ORGANIZATION VALUES
 (9, 'Volleyball Club', 'Sports'),
 (10, 'Mathematics Organization', 'Academic'),
 (11, 'Philosophical Organization', 'Academic'),
-(12, 'Table Tennis Club', 'Sports');
+(12, 'Table Tennis Club', 'Sports'),
+(13, 'Hockey Club', 'Sports'),
+(14, 'Physics Organization', 'Academic'),
+(15, 'Science Organization', 'Academic'),
+(16, 'Football Club', 'Sports'),
+(17, 'Forestry Organization', 'Academic'),
+(18, 'DevComm Organization', 'Academic'),
+(19, 'Sungka Club', 'Sports');
 
 -- Insert SERVES 
 INSERT INTO SERVES VALUES
@@ -177,5 +184,5 @@ INSERT INTO FEE VALUES
 
 INSERT INTO userdata (username, password, user_type, organization, mem_id) VALUES
 ('superadmin', '$2b$12$AHxFKMjQBZscM2gl1Resvepco341TN2Q9WztlNcvx0bO2MryKEnmm', 'admin', NULL, NULL),
-('pres', '$2b$12$l.vNxZkiIMlA4zoPrB5YIeo05H54Yj2EFOArknAhy6vZV8YyDPe6e', 'president', 'STAT_ORG', NULL),
-('member', '$2b$12$2NliramtyErVkEl5jnCD4u6WHDXh4nooBhcdqpJqVq9WdYw23ADlC', 'member', 'CMCS_ORG', 1001);
+('pres', '$2b$12$l.vNxZkiIMlA4zoPrB5YIeo05H54Yj2EFOArknAhy6vZV8YyDPe6e', 'president', 'Statistics Organization', NULL),
+('member', '$2b$12$2NliramtyErVkEl5jnCD4u6WHDXh4nooBhcdqpJqVq9WdYw23ADlC', 'member', 'Computer Science Organization', 1001);

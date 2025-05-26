@@ -50,6 +50,23 @@ def show_member_table(root, cur, org_id):
     degree_var = tk.StringVar()
     year_var = tk.StringVar()
     sort_var = tk.StringVar(value="Sort by")
+    role_var = tk.StringVar()
+    status_var = tk.StringVar()
+
+    tk.Label(filter_frame, text="Gender:", bg=main_area_bg).grid(row=0, column=0, padx=5)
+    gender_menu = tk.OptionMenu(filter_frame, gender_var, "Select", "M", "F")
+    gender_menu.config(relief="flat", font=modern_font, bg="white", highlightthickness=1, borderwidth=1)
+    gender_menu.grid(row=0, column=1, padx=5)
+    tk.Label(filter_frame, text="Batch:", bg=main_area_bg).grid(row=0, column=2, padx=5)
+    tk.Entry(filter_frame, textvariable=batch_var, width=8, font=modern_font, bd=1, relief="flat", highlightthickness=1, highlightbackground="gray").grid(row=0, column=3, padx=5)
+    tk.Label(filter_frame, text="Degree:", bg=main_area_bg).grid(row=0, column=4, padx=5)
+    tk.Entry(filter_frame, textvariable=degree_var, width=10, font=modern_font, bd=1, relief="flat", highlightthickness=1, highlightbackground="gray").grid(row=0, column=5, padx=5)
+    tk.Label(filter_frame, text="Role:", bg=main_area_bg).grid(row=0, column=8, padx=5)
+    tk.Entry(filter_frame, textvariable=role_var, width=10, font=modern_font, bd=1, relief="flat", highlightthickness=1, highlightbackground="gray").grid(row=0, column=9, padx=5)
+    tk.Label(filter_frame, text="Status:", bg=main_area_bg).grid(row=0, column=10, padx=5)
+    tk.Entry(filter_frame, textvariable=status_var, width=10, font=modern_font, bd=1, relief="flat", highlightthickness=1, highlightbackground="gray").grid(row=0, column=11, padx=5)
+    tk.Label(filter_frame, text="Year:", bg=main_area_bg).grid(row=0, column=6, padx=5)
+    tk.Entry(filter_frame, textvariable=year_var, width=8, font=modern_font, bd=1, relief="flat", highlightthickness=1, highlightbackground="gray").grid(row=0, column=7, padx=5)
 
     tk.Label(filter_frame, text="Gender:", bg=main_area_bg).grid(row=0, column=0, padx=5)
     gender_menu = tk.OptionMenu(filter_frame, gender_var, "Select", "M", "F")
@@ -61,7 +78,11 @@ def show_member_table(root, cur, org_id):
     tk.Entry(filter_frame, textvariable=degree_var, width=10, font=modern_font, bd=1, relief="flat", highlightthickness=1, highlightbackground="gray").grid(row=0, column=5, padx=5)
     tk.Label(filter_frame, text="Year:", bg=main_area_bg).grid(row=0, column=6, padx=5)
     tk.Entry(filter_frame, textvariable=year_var, width=8, font=modern_font, bd=1, relief="flat", highlightthickness=1, highlightbackground="gray").grid(row=0, column=7, padx=5)
-
+    tk.Label(filter_frame, text="Role:", bg=main_area_bg).grid(row=0, column=8, padx=5)
+    tk.Entry(filter_frame, textvariable=role_var, width=10, font=modern_font, bd=1, relief="flat", highlightthickness=1, highlightbackground="gray").grid(row=0, column=9, padx=5)
+    tk.Label(filter_frame, text="Status:", bg=main_area_bg).grid(row=0, column=10, padx=5)
+    tk.Entry(filter_frame, textvariable=status_var, width=10, font=modern_font, bd=1, relief="flat", highlightthickness=1, highlightbackground="gray").grid(row=0, column=11, padx=5)
+    
     def apply_filters():
         filters = {}
         if gender_var.get() != "Select":
@@ -72,12 +93,20 @@ def show_member_table(root, cur, org_id):
             filters["degree"] = degree_var.get()
         if year_var.get():
             filters["year"] = year_var.get()
+        if role_var.get():
+            filters["role"] = role_var.get()
+        if status_var.get():
+            filters["status"] = status_var.get()
         refresh_member_table(root, cur, filters, sort_var.get(), org_id)
+        
+    # apply_btn = tk.Button(filter_frame, text="Apply Filters", command=apply_filters)
+    # apply_btn.grid(row=0, column=8, padx=10)
+    # style_button(apply_btn)
 
+    # Place Apply Filters button after all filter fields
     apply_btn = tk.Button(filter_frame, text="Apply Filters", command=apply_filters)
-    apply_btn.grid(row=0, column=8, padx=10)
-    style_button(apply_btn)
-
+    apply_btn.grid(row=0, column=12, padx=10)
+    
     # Sort and reset
     right_tools_frame = tk.Frame(top_frame, bg=main_area_bg)
     right_tools_frame.pack(side="right")
@@ -122,7 +151,7 @@ def show_member_table(root, cur, org_id):
     tree_frame = tk.Frame(root)
     tree_frame.pack(fill="both", expand=True)
 
-    columns = ("Member Id", "Name", "Role", "Status", "Gender", "Degree Program", "Batch", "Committee")
+    columns = ("Member Id", "Name", "Role", "Status", "Gender", "Degree Program", "Batch", "Year of Membership", "Committee")
     tree = ttk.Treeview(tree_frame, columns=columns, show="headings", style="Modern.Treeview")
     tree.pack(fill="both", expand=True)
 
@@ -339,7 +368,20 @@ def show_member_table(root, cur, org_id):
 
 
 def refresh_member_table(root, cur, filters, sort_by, org_id):
-    base_query = "SELECT mem_id, concat(surname,', ',first_name,' ', second_name), role, status, gender, deg_prog, academic_year, committee FROM member NATURAL JOIN serves"
+    base_query = """
+    SELECT 
+        mem_id, 
+        concat(surname,', ',first_name,' ', second_name), 
+        role, 
+        status, 
+        gender, 
+        deg_prog, 
+        batch,           -- from member
+        year_mem,        -- from member
+        committee 
+    FROM member 
+    NATURAL JOIN serves
+    """
     conditions = []
     params = []
 
@@ -359,6 +401,12 @@ def refresh_member_table(root, cur, filters, sort_by, org_id):
     if filters.get("year"):
         conditions.append("year_mem = %s")
         params.append(filters["year"])
+    if filters.get("role"):
+        conditions.append("role = %s")
+        params.append(filters["role"])
+    if filters.get("status"):
+        conditions.append("status = %s")
+        params.append(filters["status"])
 
     # Construct the WHERE clause only if there are conditions
     if conditions:
@@ -376,4 +424,3 @@ def refresh_member_table(root, cur, filters, sort_by, org_id):
         root.tree.delete(row)
     for member in members:
         root.tree.insert("", "end", values=member)
-
