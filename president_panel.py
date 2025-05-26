@@ -267,8 +267,6 @@ def open_president_panel(root, admin, org_name, org_id):
     # Load homepage by default
     load_table("home")
 
-
-
     # Back to Superadmin button (right side)
     if(admin):
         # Function to handle going back to superadmin panel
