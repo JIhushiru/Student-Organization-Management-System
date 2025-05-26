@@ -47,14 +47,14 @@ def server_program():
 
             result = authenticate_user(action, username, password)
 
-            org_id = 0
+            omid=0
             if isinstance(result, tuple):
-                response, organization, org_id = result
+                response, organization, omid = result
             else:
                 response = result
                 organization = ""
 
-            client_socket.send(f"{response}|{organization}|{org_id}".encode())
+            c.send(f"{response}|{organization}|{omid}".encode())
 
         except Exception as e:
             print(f"Error handling connection: {e}")
@@ -83,10 +83,12 @@ def send_request(action, username, password):
         client.send(password.encode())
 
         response = client.recv(1024).decode()
-        status, org_name, org_id = response.split('|', 2)
-        return status, org_name, int(org_id)
+        status, org_name, omid = response.split('|', 2)
+        omid = int(omid)
 
-    except Exception as e:
+        return status, org_name, omid
+
+    except ImportError as e:
         return f"Error: {e}", "", 0
 
 # ========================== LOGIN FUNCTIONS ==========================
@@ -99,16 +101,20 @@ def login():
         messagebox.showerror("Error", "Please enter username and password.")
         return
 
-    status, org_name, org_id = send_request("login", username, password)
+    status, org_name, omid = send_request("login", username, password)
 
-    main_frame.pack_forget()
-
-    if status == "SUPERADMIN_LOGIN_SUCCESS":
+    if status == "ADMIN_LOGIN_SUCCESS":
+        main_frame.pack_forget()
         open_superadmin_panel(root)
-    elif status == "LOGIN_SUCCESS":
-        open_president_panel(root, False, org_name, org_id)
+
+    elif status == "PRESIDENT_LOGIN_SUCCESS":
+        main_frame.pack_forget()
+        open_president_panel(root, False, org_name, omid)
+
     elif status == "MEMBER_LOGIN_SUCCESS":
-        show_member_fee_panel(root, org_id)
+        main_frame.pack_forget()
+        show_member_fee_panel(root, omid)
+
     else:
         messagebox.showinfo("Login Result", status)
         main_frame.pack(fill="both", expand=True)  # Re-show on error

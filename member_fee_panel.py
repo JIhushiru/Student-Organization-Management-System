@@ -84,7 +84,7 @@ def show_member_fee_panel(root, member_id):
         if unpaid_count == 0:
             unpaid_tree.insert("", "end", values=("none", "", "", "", "", ""))
 
-    except Exception as e:
+    except ImportError as e:
         messagebox.showerror("Error", f"An error occurred while fetching fees: {e}")
 
     finally:
