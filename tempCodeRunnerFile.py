@@ -12,8 +12,11 @@ from president_panel import open_president_panel
 from member_fee_panel import show_member_fee_panel
 
 # ========================== DATABASE INIT ==========================
-# run_studorg()  # Comment out after 1st run
-# run_views()
+run_studorg()  # Comment out after 1st run
+run_views()
+
+# ========================== SERVER READY EVENT ==========================
+server_ready_event = threading.Event()
 
 # ========================== GUI SETUP ==========================
 WINDOW_WIDTH = 1300
@@ -33,10 +36,13 @@ main_frame.pack(fill="both", expand=True)
 
 # ========================== SERVER ==========================
 def server_program():
-    """Server program function"""
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.bind(("localhost", 3001))
     server.listen()
+
+    # Signal that the server is ready
+    server_ready_event.set()
+    print("Server listening on localhost:3001...")
 
     def handle_connection(c):
         try:
@@ -48,7 +54,7 @@ def server_program():
 
             result = authenticate_user(action, username, password)
 
-            omid=0
+            omid = 0
             if isinstance(result, tuple):
                 response, organization, omid = result
             else:
@@ -57,29 +63,27 @@ def server_program():
 
             c.send(f"{response}|{organization}|{omid}".encode())
 
-        except ImportError as e:
+        except Exception as e:
             print(f"Error handling connection: {e}")
             try:
                 c.send("Server error.".encode())
-            except ImportError:
+            except:
                 pass
         finally:
             c.close()
 
-    print("Server listening on localhost:3001...")
     while True:
         client, _ = server.accept()
-        threading.Thread(
-            target=handle_connection,
-            args=(client,),
-            daemon=True
-        ).start()
+        threading.Thread(target=handle_connection, args=(client,), daemon=True).start()
 
 # ========================== CLIENT ==========================
 def send_request(action, username, password):
-    """Send request function"""
+    # Wait until the server is ready
+    server_ready_event.wait()
+
     try:
         client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        client.settimeout(5)
         client.connect(("localhost", 3001))
         client.recv(1024)
 
@@ -93,155 +97,83 @@ def send_request(action, username, password):
 
         return status, org_name, omid
 
-    except ImportError as e:
+    except Exception as e:
         return f"Error: {e}", "", 0
 
 # ========================== LOGIN FUNCTIONS ==========================
 def login():
-    """Log in function"""
+    threading.Thread(target=perform_login, daemon=True).start()
+
+def perform_login():
     username = entry_username.get()
     password = entry_password.get()
 
     if not username or not password:
-        messagebox.showerror("Error", "Please enter username and password.")
+        root.after(0, lambda: messagebox.showerror("Error", "Please enter username and password."))
         return
 
     status, org_name, omid = send_request("login", username, password)
 
     if status == "ADMIN_LOGIN_SUCCESS":
-        main_frame.pack_forget()
-        open_superadmin_panel(root)
-
+        root.after(0, lambda: switch_to_panel(open_superadmin_panel, root))
     elif status == "PRESIDENT_LOGIN_SUCCESS":
-        main_frame.pack_forget()
-        open_president_panel(root, False, org_name, omid)
-
+        root.after(0, lambda: switch_to_panel(open_president_panel, root, False, org_name, omid))
     elif status == "MEMBER_LOGIN_SUCCESS":
-        main_frame.pack_forget()
-        show_member_fee_panel(root, omid)
-
+        root.after(0, lambda: switch_to_panel(show_member_fee_panel, root, omid))
     else:
-        messagebox.showinfo("Login Result", status)
+        root.after(0, lambda: messagebox.showinfo("Login Result", status))
+
+def switch_to_panel(panel_function, *args):
+    main_frame.pack_forget()
+    panel_function(*args)
 
 def clear_fields():
-    """Clear fields function"""
     entry_username.delete(0, tk.END)
     entry_password.delete(0, tk.END)
 
-
 # ========================== Left Panel ==========================
-# Login
-left_panel = ctk.CTkFrame(
-    main_frame,
-    corner_radius=20,
-    fg_color="#ffffff",
-    width=500
-)
+left_panel = ctk.CTkFrame(main_frame, corner_radius=20, fg_color="#ffffff", width=500)
 left_panel.pack(side="left", fill="both", expand=True)
 
-login_title = tk.Label(
-    left_panel,
-    text="Login to Your Account",
-    font=("Arial", 24, "bold"),
-    bg="#ffffff"
-)
+login_title = tk.Label(left_panel, text="Login to Your Account", font=("Arial", 24, "bold"), bg="#ffffff")
 login_title.pack(pady=(70, 70))
 
 form_frame = tk.Frame(left_panel, bg="#ffffff")
 form_frame.pack(pady=10)
 
-# Username
-tk.Label(
-    form_frame,
-    text="Username",
-    font=("Arial", 12),
-    bg="#ffffff"
-).grid(row=0, column=0, padx=10, pady=5, sticky="w")
-
-entry_username = ctk.CTkEntry(
-    form_frame,
-    width=300,
-    height=30,
-    font=("Arial", 16)
-)
+tk.Label(form_frame, text="Username", font=("Arial", 12), bg="#ffffff").grid(row=0, column=0, padx=10, pady=5, sticky="w")
+entry_username = ctk.CTkEntry(form_frame, width=300, height=30, font=("Arial", 16))
 entry_username.grid(row=1, column=0, padx=10, pady=5, ipady=6)
 
-# Password
-tk.Label(
-    form_frame,
-    text="Password",
-    font=("Arial", 12),
-    bg="#ffffff"
-).grid(row=2, column=0, padx=10, pady=5, sticky="w")
-
-entry_password = ctk.CTkEntry(
-    form_frame,
-    width=300,
-    height=30,
-    font=("Arial", 16),
-    show="●"
-)
+tk.Label(form_frame, text="Password", font=("Arial", 12), bg="#ffffff").grid(row=2, column=0, padx=10, pady=5, sticky="w")
+entry_password = ctk.CTkEntry(form_frame, width=300, height=30, font=("Arial", 16), show="●")
 entry_password.grid(row=3, column=0, padx=10, pady=5, ipady=6)
 
-# Buttons
 button_frame = tk.Frame(left_panel, bg="#ffffff")
 button_frame.pack(pady=20)
 
-btn_login = ctk.CTkButton(
-    button_frame,
-    text="Log In",
-    command=login,
-    fg_color="#020325",
-    hover_color="#1a1a40"
-)
+btn_login = ctk.CTkButton(button_frame, text="Log In", command=login, fg_color="#020325", hover_color="#1a1a40")
 btn_login.grid(row=0, column=0, padx=5, ipadx=10)
 
-btn_clear = ctk.CTkButton(
-    button_frame,
-    text="Clear",
-    command=clear_fields,
-    fg_color="#020325",
-    hover_color="#1a1a40"
-)
+btn_clear = ctk.CTkButton(button_frame, text="Clear", command=clear_fields, fg_color="#020325", hover_color="#1a1a40")
 btn_clear.grid(row=0, column=1, padx=5, ipadx=10)
 
 # ========================== Right Panel ==========================
-right_panel = ctk.CTkFrame(
-    main_frame,
-    corner_radius=0,
-    fg_color="#020325",
-    width=500
-)
+right_panel = ctk.CTkFrame(main_frame, corner_radius=0, fg_color="#020325", width=500)
 right_panel.pack(side="right", fill="both", expand=True)
 
 right_content = tk.Frame(right_panel, bg="#020325")
 right_content.place(relx=0.3, rely=0.4, anchor="center")
 
-# Title
-welcome_label = tk.Label(
-    right_content,
-    text="studentary",
-    font=("Palatino Linotype", 60, "bold"),
-    bg="#020325",
-    fg="white"
-)
+welcome_label = tk.Label(right_content, text="studentary", font=("Palatino Linotype", 60, "bold"), bg="#020325", fg="white")
 welcome_label.pack(anchor="w", pady=(0, 1), padx=(20, 0))
 
-# Tagline
-welcome_tag = tk.Label(
-    right_content,
-    text="Keeping everything in sync.",
-    font=("Arial", 20, "italic"),
-    bg="#020325",
-    fg="white"
-)
+welcome_tag = tk.Label(right_content, text="Keeping everything in sync.", font=("Arial", 20, "italic"), bg="#020325", fg="white")
 welcome_tag.pack(anchor="w", pady=(0, 1), padx=(22, 0))
 
-# Message
 message_label = tk.Label(
     right_content,
-    text="Manage your student organization's data with ease.\n"
-         "Please log in to continue.",
+    text="Manage your student organization's data with ease.\nPlease log in to continue.",
     font=("Arial", 14),
     bg="#020325",
     fg="white",
@@ -254,8 +186,5 @@ entry_username.focus()
 
 # ========================== MAIN ==========================
 if __name__ == "__main__":
-    threading.Thread(
-        target=server_program,
-        daemon=True
-    ).start()
+    threading.Thread(target=server_program, daemon=True).start()
     root.mainloop()
