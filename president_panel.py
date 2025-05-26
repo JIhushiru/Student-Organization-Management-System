@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import simpledialog
 from db_connection import get_connection
 from fee import show_fee_table
 from members import show_member_table
@@ -114,12 +115,12 @@ def open_president_panel(root, admin, org_name, org_id):
         top_nav_title.config(text=org_name)
 
         if table_name == "home":
-            home_header = tk.Label(main_area, text=org_name,
-                                font=("Segoe UI", 40, "bold"), fg="#2C3E50", bg=main_area_bg)
-            home_header.pack(pady=10)
+            home_header = tk.Label(main_area, text="SUMMARY REPORTS",
+                                font=("Palatino Linotype", 40, "bold"), fg="#020325", bg=main_area_bg)
+            home_header.pack(pady=(10,1))
 
-            subtext = tk.Label(main_area, text="Manage Members, Fees, and More!",
-                            font=("Segoe UI", 14), fg=primary_color, bg=main_area_bg)
+            subtext = tk.Label(main_area, text="Members, Fees, and More!",
+                            font=("Arial", 14, "italic"), fg="#020325", bg=main_area_bg)
             subtext.pack(pady=5)
 
             # Frame to hold report buttons
@@ -153,49 +154,115 @@ def open_president_panel(root, admin, org_name, org_id):
 
         # Report view logic
         elif table_name == "unpaid":
-            cur.execute("SELECT mem_id, concat(surname,', ',first_name,' ', second_name), due_date FROM Unpaid WHERE org_name = %s", (org_name,))
-            rows = cur.fetchall()
-            display_report(main_area, rows, ["ID", "Name", "Due Date"])
+            # 2. Unpaid fees for org by semester and academic year
+            semester = simpledialog.askstring("Input", "Enter semester (e.g., '1st'):", parent=main_area)
+            academic_year = simpledialog.askstring("Input", "Enter academic year (e.g., '2024-2025'):", parent=main_area)
+            if semester and academic_year:
+                cur.execute("""
+                    SELECT mem_id, concat(surname,', ',first_name,' ', second_name), due_date
+                    FROM Unpaid 
+                    WHERE org_name = %s AND semester_issued = %s AND academic_year_issued = %s
+                """, (org_name, semester, academic_year))
+                rows = cur.fetchall()
+                display_report(main_area, rows, ["ID", "Name", "Due Date"])
 
         elif table_name == "member_dues":
-            cur.execute("SELECT org_name, fee_type, amount, due_date FROM Unpaid WHERE surname = 'Mendoza' AND org_name = %s", (org_name,))
-            rows = cur.fetchall()
-            display_report(main_area, rows, ["Org", "Fee Type", "Amount", "Due Date"])
+            # 3. Member's unpaid fees for all orgs - needs member surname input
+            surname = simpledialog.askstring("Input", "Enter surname:", parent=main_area)
+            if surname:
+                cur.execute("SELECT org_name, fee_type, amount, due_date FROM Unpaid WHERE surname = %s AND org_name = %s",
+                            (surname, org_name))
+                rows = cur.fetchall()
+                display_report(main_area, rows, ["Org", "Fee Type", "Amount", "Due Date"])
+
 
         elif table_name == "exec":
-            cur.execute("SELECT mem_id, concat(surname,', ',first_name,' ', second_name), role, status FROM Exec WHERE org_name = %s", (org_name,))
-            rows = cur.fetchall()
-            display_report(main_area, rows, ["ID", "Role", "Status"])
+            # 4. Executives for org and academic year
+            academic_year = simpledialog.askstring("Input", "Enter academic year (e.g., '2024-2025'):", parent=main_area)
+            if academic_year:
+                cur.execute("""
+                    SELECT mem_id, concat(surname,', ',first_name,' ', second_name), role, status 
+                    FROM Exec 
+                    WHERE org_name = %s AND academic_year = %s
+                """, (org_name, academic_year))
+                rows = cur.fetchall()
+                display_report(main_area, rows, ["ID", "Role", "Status"])
 
         elif table_name == "roles_per_year":
-            cur.execute("SELECT mem_id, concat(surname,', ',first_name,' ', second_name), academic_year, semester FROM RolesPerYear WHERE org_name = %s AND role = 'President'", (org_name,))
+            # 5. Presidents for org, all years reverse order
+            cur.execute("""
+                SELECT mem_id, concat(surname,', ',first_name,' ', second_name), academic_year, semester 
+                FROM RolesPerYear 
+                WHERE org_name = %s AND role = 'President' 
+                ORDER BY academic_year DESC
+            """, (org_name,))
             rows = cur.fetchall()
             display_report(main_area, rows, ["Mem ID", "Name", "Year", "Semester"])
 
         elif table_name == "late_payments":
-            cur.execute("SELECT mem_id, concat(surname,', ',first_name,' ', second_name), fee_type, amount, academic_year_issued, semester_issued, due_date, date_paid FROM LatePayments WHERE org_name = %s", (org_name,))
-            rows = cur.fetchall()
-            display_report(main_area, rows, ["ID", "Name", "Type", "Amount", "Year", "Semester", "Due Date", "Date Paid"])
+            # 6. Late payments for org, semester, academic year
+            semester = simpledialog.askstring("Input", "Enter semester (e.g., '1st'):", parent=main_area)
+            academic_year = simpledialog.askstring("Input", "Enter academic year (e.g., '2024-2025'):", parent=main_area)
+            if semester and academic_year:
+                cur.execute("""
+                    SELECT mem_id, concat(surname,', ',first_name,' ', second_name), fee_type, amount, academic_year_issued, semester_issued, due_date, date_paid 
+                    FROM LatePayments 
+                    WHERE org_name = %s AND semester_issued = %s AND academic_year_issued = %s
+                """, (org_name, semester, academic_year))
+                rows = cur.fetchall()
+                display_report(main_area, rows, ["ID", "Name", "Type", "Amount", "Year", "Semester", "Due Date", "Date Paid"])
 
         elif table_name == "percentage":
-            cur.execute("SELECT semester, academic_year, num_members, active_members, active_percentage FROM Percentage WHERE org_id = %s ORDER BY academic_year DESC", (org_id,))
-            rows = cur.fetchall()
-            display_report(main_area, rows, ["Semester", "Year", "Total Members", "# Active", "% Active"])
+            # 7. Active vs inactive percentage for last n semesters
+            n = simpledialog.askinteger("Input", "Enter number of last semesters to view:", parent=main_area, minvalue=1)
+            if n:
+                cur.execute("""
+                    SELECT semester, academic_year, num_members, active_members, active_percentage 
+                    FROM Percentage 
+                    WHERE org_id = %s 
+                    ORDER BY academic_year DESC, semester DESC 
+                    LIMIT %s
+                """, (org_id, n))
+                rows = cur.fetchall()
+                display_report(main_area, rows, ["Semester", "Year", "Total Members", "# Active", "% Active"])
 
         elif table_name == "alumni":
-            cur.execute("SELECT mem_id, concat(surname,', ',first_name,' ', second_name), academic_year, semester FROM Alumni WHERE org_name = %s", (org_name,))
-            rows = cur.fetchall()
-            display_report(main_area, rows, ["Mem ID", "Name", "Year", "Semester"])
+            # 8. Alumni as of a given date
+            date_as_of = simpledialog.askstring("Input", "Enter date (YYYY-MM-DD):", parent=main_area)
+            if date_as_of:
+                cur.execute("""
+                    SELECT mem_id, concat(surname,', ',first_name,' ', second_name), academic_year, semester 
+                    FROM Alumni 
+                    WHERE org_name = %s AND academic_year <= %s
+                """, (org_name, date_as_of)) 
+                rows = cur.fetchall()
+                display_report(main_area, rows, ["Mem ID", "Name", "Year", "Semester"])
 
         elif table_name == "fee_summary":
-            cur.execute("SELECT * FROM OrgFeesSummary WHERE org_name = %s", (org_name,))
-            rows = cur.fetchall()
-            display_report(main_area, rows, ["Org", "Total Paid", "Total Unpaid", "Date Paid"])
+            # 9. Total fees paid/unpaid as of a date
+            date_as_of = simpledialog.askstring("Input", "Enter date (YYYY-MM-DD):", parent=main_area)
+            if date_as_of:
+                cur.execute("""
+                    SELECT * 
+                    FROM OrgFeesSummary 
+                    WHERE org_name = %s AND date_paid <= %s
+                """, (org_name, date_as_of))
+                rows = cur.fetchall()
+                display_report(main_area, rows, ["Org", "Total Paid", "Total Unpaid", "Date Paid"])
+
 
         elif table_name == "highest_debt":
-            cur.execute("SELECT * FROM HighestDebt WHERE org_name = %s AND academic_year_issued = '2024-2025' AND semester_issued = '2nd'", (org_name,))
-            rows = cur.fetchall()
-            display_report(main_area, rows, ["Org", "ID", "Surname", "First", "Second", "Sem", "Year", "Total Unpaid"])
+            # 10. Highest debt for org, semester, academic year
+            semester = simpledialog.askstring("Input", "Enter semester (e.g., '1st'):", parent=main_area)
+            academic_year = simpledialog.askstring("Input", "Enter academic year (e.g., '2024-2025'):", parent=main_area)
+            if semester and academic_year:
+                cur.execute("""
+                    SELECT * 
+                    FROM HighestDebt 
+                    WHERE org_name = %s AND academic_year_issued = %s AND semester_issued = %s
+                """, (org_name, academic_year, semester))
+                rows = cur.fetchall()
+                display_report(main_area, rows, ["Org", "ID", "Surname", "First", "Second", "Sem", "Year", "Total Unpaid"])
 
     # Load homepage by default
     load_table("home")

@@ -5,300 +5,189 @@ from db_connection import get_connection
 from president_panel import open_president_panel
 import mariadb
 
+BUTTON_COLOR = "#020325"
+BUTTON_TEXT_COLOR = "white"
+TITLE_FONT = ("Arial", 12, "bold")
+ITEMS_PER_PAGE = 9  # 3 columns * 3 rows
+
 def open_superadmin_panel(root):
-    # Tabs
-    tab = ttk.Notebook(root)
+    root.title("Admin View")
+    root.geometry("1300x650")
+    root.configure(bg="white")
 
-    # Organizations Tab
-    orgs_tab = ttk.Frame(tab)
-    tab.add(orgs_tab, text='Organizations')
+    style = ttk.Style()
+    style.theme_use('default')
+    style.configure('TLabel', background='white', font=('Arial', 10))
+    style.configure('Header.TLabel', background='white', font=('Palatino Linotype', 40, 'bold'), foreground=BUTTON_COLOR)
 
-    def fetch_organizations():
-        """Fetch organizations from the database"""
-        conn = get_connection()
-        cur = conn.cursor()
-        cur.execute("SELECT org_id, org_name FROM organization")
-        organizations = cur.fetchall()
-        conn.close()
-        return organizations
+    header = ttk.Label(root, text="ORGANIZATIONS DASHBOARD", style='Header.TLabel')
+    header.pack(pady=10)
 
-    org_button_frame = ttk.Frame(orgs_tab)
-    org_button_frame.pack(fill='x', anchor='w', padx=10, pady=10)
-    def populate_organization_buttons():
-        for widget in org_button_frame.winfo_children():
-            widget.destroy()
+    # Top Buttons
+    top_button_frame = ttk.Frame(root)
+    top_button_frame.pack(pady=10)
 
-        try:
-            organizations = fetch_organizations()
-            for org_id, org_name in organizations:
-                btn = ttk.Button(org_button_frame, text=f"Manage: {org_name}",
-                                command=lambda oid=org_id, oname=org_name: open_president_panel(root, True, oname, oid))
-                btn.pack(pady=2, anchor="w")
-        except Exception as e:
-            messagebox.showerror("Error", f"Failed to load organizations: {e}")
-
-        # Always include "Manage: All orgs"
-        all_btn = ttk.Button(org_button_frame, text="Manage: All orgs",
-            command=lambda oid=0, oname="All": open_president_panel(root, True, oname, oid))
-        all_btn.pack(pady=2, anchor="w")
-
-    populate_organization_buttons()
-    
     def show_add_org_form():
         add_window = tk.Toplevel(root)
         add_window.title("Add New Organization")
-        add_window.geometry("300x180")
+        add_window.geometry("300x200")
+        add_window.configure(bg="white")
 
-        tk.Label(add_window, text="Organization Name:").grid(row=0, column=0, padx=10, pady=10, sticky="w")
-        org_name_entry = tk.Entry(add_window, width=25)
-        org_name_entry.grid(row=0, column=1, padx=10)
+        form_frame = ttk.Frame(add_window)
+        form_frame.pack(padx=20, pady=20)
 
-        tk.Label(add_window, text="Organization Type:").grid(row=1, column=0, padx=10, pady=10, sticky="w")
-        org_type_entry = tk.Entry(add_window, width=25)
-        org_type_entry.grid(row=1, column=1, padx=10)
+        ttk.Label(form_frame, text="Organization Name:").grid(row=0, column=0, sticky="w", pady=5)
+        org_name_entry = ttk.Entry(form_frame, width=25)
+        org_name_entry.grid(row=0, column=1, pady=5)
+
+        ttk.Label(form_frame, text="Organization Type:").grid(row=1, column=0, sticky="w", pady=5)
+        org_type_entry = ttk.Entry(form_frame, width=25)
+        org_type_entry.grid(row=1, column=1, pady=5)
 
         def submit_org():
             org_name = org_name_entry.get().strip()
             org_type = org_type_entry.get().strip()
-
             if not org_name or not org_type:
                 messagebox.showwarning("Input Error", "All fields are required.")
                 return
-
             try:
                 conn = get_connection()
                 cursor = conn.cursor()
-                cursor.execute(
-                    "INSERT INTO ORGANIZATION (org_name, type) VALUES (?, ?)",
-                    (org_name, org_type)
-                )
+                cursor.execute("INSERT INTO ORGANIZATION (org_name, type) VALUES (?, ?)", (org_name, org_type))
                 conn.commit()
                 messagebox.showinfo("Success", f"'{org_name}' added successfully!")
                 add_window.destroy()
-
-                # Refresh org buttons and combobox
-                populate_organization_buttons()
-                
+                refresh_data()
             except mariadb.Error as e:
                 messagebox.showerror("Database Error", f"Failed to add organization:\n{e}")
             finally:
                 if cursor: cursor.close()
                 if conn: conn.close()
 
+        ttk.Button(form_frame, text="Add Organization", command=submit_org).grid(row=2, column=0, columnspan=2, pady=15)
 
-        submit_btn = tk.Button(add_window, text="Add Organization", command=submit_org)
-        submit_btn.grid(row=2, column=0, columnspan=2, pady=20)
-    btn = ttk.Button(orgs_tab, text="Add Organization",command=show_add_org_form)
-    btn.pack(pady=5, anchor="w", padx=10)
-    
+    def show_delete_org_dialog():
+        delete_window = tk.Toplevel(root)
+        delete_window.title("Delete Organization")
+        delete_window.geometry("350x150")
+        delete_window.configure(bg="white")
 
-    # User List Tab
-    user_tab = ttk.Frame(tab)
-    tab.add(user_tab, text='View Users')
-    
-    # Create User Tab
-    create_tab = ttk.Frame(tab)
-    tab.add(create_tab, text='Create User')
+        tk.Label(delete_window, text="Select an organization to delete:",
+                 bg="white", font=("Arial", 10)).pack(pady=10)
 
-    tab.pack(expand=1, fill="both")
-    
-    list_frame = ttk.Frame(user_tab)
-    list_frame.pack(pady=20, fill="both", expand=True)
-    
-    # Create treeview for users
-    tree = ttk.Treeview(list_frame, columns=("ID", "Username", "User Type", "Organization"), show="headings")
-    tree.heading("ID", text="ID")
-    tree.heading("Username", text="Username")
-    tree.heading("User Type", text="User Type")
-    tree.heading("Organization", text="Organization")
+        org_var = tk.StringVar()
+        org_dropdown = ttk.Combobox(delete_window, textvariable=org_var, state="readonly", width=35)
+        org_dropdown['values'] = [f"{name} (ID: {oid})" for oid, name in organizations]
+        org_dropdown.pack(pady=5)
 
-    tree.column("ID", width=50)
-    tree.column("Username", width=200)
-    tree.column("User Type", width=100)
-    tree.column("Organization", width=50)
-
-    
-    scrollbar = ttk.Scrollbar(list_frame, orient="vertical", command=tree.yview)
-    tree.configure(yscrollcommand=scrollbar.set)
-    
-    tree.pack(side="left", fill="both", expand=True)
-    scrollbar.pack(side="right", fill="y")
-    
-    def load_users():
-        # Clear the current tree
-        for item in tree.get_children():
-            tree.delete(item)
-        
-        try:
-            conn = get_connection()
-            cur = conn.cursor()
-            
-            # Get all users except superadmin
-            cur.execute("SELECT user_id, username, user_type, organization FROM userdata WHERE username != 'superadmin'")
-            
-            for user in cur:
-                tree.insert("", "end", values=user)
-                
-            conn.close()
-        except Exception as e:
-            messagebox.showerror("Database Error", f"Failed to load users: {e}")
-             
-             
-    
-    def delete_user():
-        selected_item = tree.selection()
-        if not selected_item:
-            messagebox.showwarning("Selection Required", "Please select a user to delete.")
-             
-             
-            return
-        
-        user_id = tree.item(selected_item[0], "values")[0]
-        username = tree.item(selected_item[0], "values")[1]
-        
-        # Confirmation Dialog
-        confirm_dialog = tk.Toplevel(root)
-        confirm_dialog.title("Confirm Deletion")
-        confirm_dialog.geometry("300x150")
-        confirm_dialog.resizable(False, False)
-        confirm_dialog.transient(root)
-        confirm_dialog.grab_set()
-        
-        dialog_x = root.winfo_x() + (root.winfo_width() // 2) - 150
-        dialog_y = root.winfo_y() + (root.winfo_height() // 2) - 75
-        confirm_dialog.geometry(f"+{dialog_x}+{dialog_y}")
-        
-        # Dialog content
-        message = tk.Label(confirm_dialog, text=f"Are you sure you want to delete user '{username}'?", 
-                          pady=15, padx=20)
-        message.pack()
-        
-        # Button frame
-        btn_frame = tk.Frame(confirm_dialog)
-        btn_frame.pack(pady=10)
-        
-        # Function for Yes button
-        def confirm_delete():
-            try:
-                conn = get_connection()
-                cur = conn.cursor()
-                
-                cur.execute("DELETE FROM userdata WHERE id = ?", (user_id,))
-                conn.commit()
-                conn.close()
-                
-                confirm_dialog.destroy()
-                messagebox.showinfo("Success", f"User '{username}' has been deleted.")
-                load_users()
-            except Exception as e:
-                confirm_dialog.destroy()
-                messagebox.showerror("Database Error", f"Failed to delete user: {e}")
-        
-        # Function for No button
-        def cancel_delete():
-            confirm_dialog.destroy()
-        
-        # Buttons
-        yes_btn = ttk.Button(btn_frame, text="Yes", command=confirm_delete)
-        yes_btn.pack(side=tk.LEFT, padx=10)
-        
-        no_btn = ttk.Button(btn_frame, text="No", command=cancel_delete)
-        no_btn.pack(side=tk.LEFT, padx=10)
-    
-    # Button frame for operations
-    btn_frame = ttk.Frame(user_tab)
-    btn_frame.pack(pady=10)
-    
-    # Buttons
-    ttk.Button(btn_frame, text="Refresh", command=load_users).grid(row=0, column=0, padx=5)
-    ttk.Button(btn_frame, text="Delete User", command=delete_user).grid(row=0, column=1, padx=5)
-    
-    #Create User tab
-    create_frame = ttk.Frame(create_tab)
-    create_frame.pack(pady=50)
-    
-
-    # Username
-    ttk.Label(create_frame, text="Username:").grid(row=0, column=0, padx=10, pady=10, sticky="e")
-    new_username = ttk.Entry(create_frame, width=30)
-    new_username.grid(row=0, column=1, padx=10, pady=10)
-    
-    # Password
-    ttk.Label(create_frame, text="Password:").grid(row=1, column=0, padx=10, pady=10, sticky="e")
-    new_password = ttk.Entry(create_frame, width=30, show="●")
-    new_password.grid(row=1, column=1, padx=10, pady=10)
-
-    ttk.Label(create_frame, text="Organization:").grid(row=2, column=0, padx=10, pady=10, sticky="e")
-    organizations = fetch_organizations()
-    org_combobox = ttk.Combobox(create_frame, values=["None"] + [org[1] for org in organizations], width=30)
-    org_combobox.grid(row=2, column=1, padx=10, pady=10)
-
-    # User Type
-    ttk.Label(create_frame, text="User Type:").grid(row=3, column=0, padx=10, pady=10, sticky="e")
-    user_type_combobox = ttk.Combobox(create_frame, values=["admin", "president"], width=30, state="readonly")
-    user_type_combobox.grid(row=3, column=1, padx=10, pady=10)
-    user_type_combobox.current(0)  # Default to 'admin'
-
-    def create_user():
-        username = new_username.get()
-        password = new_password.get()
-        organization = org_combobox.get()
-        user_type = user_type_combobox.get()
-        
-        # Validate input
-        if not username or not password or not user_type:
-            messagebox.showwarning("Input Required", "All fields are required.")
-            return
-
-        # If user is an admin, set organization to None
-        if user_type == "admin":
-            organization = None
-            org_combobox.set('')  # Clear the combobox value when admin is selected
-
-        # Check if username already exists
-        try:
-            conn = get_connection()
-            cur = conn.cursor()
-            
-            # Check if username already exists
-            cur.execute("SELECT * FROM userdata WHERE username = ?", (username,))
-            if cur.fetchall():
-                messagebox.showwarning("Username Exists", "This username already exists.")
-                conn.close()
+        def delete_selected():
+            selected = org_var.get()
+            if not selected:
+                messagebox.showwarning("Selection Error", "Please select an organization to delete.")
                 return
+            org_id = int(selected.split("ID: ")[1].rstrip(")"))
+            confirm = messagebox.askyesno("Confirm Delete", "Are you sure you want to delete this organization?")
+            if confirm:
+                try:
+                    conn = get_connection()
+                    cursor = conn.cursor()
+                    cursor.execute("DELETE FROM organization WHERE org_id = ?", (org_id,))
+                    conn.commit()
+                    messagebox.showinfo("Deleted", "Organization deleted successfully.")
+                    delete_window.destroy()
+                    refresh_data()
+                except mariadb.Error as e:
+                    messagebox.showerror("Database Error", f"Failed to delete organization:\n{e}")
+                finally:
+                    if cursor: cursor.close()
+                    if conn: conn.close()
 
-            # Insert new user into userdata table
-            hashed_password = hash_password(password)
-            cur.execute("INSERT INTO userdata (username, password, user_type, organization) VALUES (?, ?, ?, ?)", (username, hashed_password, user_type, organization))
-            conn.commit()
+        ttk.Button(delete_window, text="Delete", command=delete_selected).pack(pady=10)
 
-            # Success message
-            messagebox.showinfo("Success", f"User '{username}' has been created as an {user_type}.")
+    # Place all three buttons in the top row
+    tk.Button(top_button_frame, text="+ Add Organization", command=show_add_org_form,
+              bg=BUTTON_COLOR, fg=BUTTON_TEXT_COLOR, font=("Arial", 10), padx=12, pady=6).pack(side="left", padx=10)
 
-            # Clear the input fields
-            new_username.delete(0, tk.END)
-            new_password.delete(0, tk.END)
-            org_combobox.set('')  # Reset combobox
-            user_type_combobox.set('admin')  # Reset user type to admin
+    tk.Button(top_button_frame, text="Manage All Organizations",
+              command=lambda: open_president_panel(root, True, "All", 0),
+              bg=BUTTON_COLOR, fg=BUTTON_TEXT_COLOR, font=("Arial", 10), padx=12, pady=6).pack(side="left", padx=10)
 
-            load_users()  # Refresh the user list
+    tk.Button(top_button_frame, text="Delete Organization", command=show_delete_org_dialog,
+              bg="#c0392b", fg="white", font=("Arial", 10), padx=12, pady=6).pack(side="left", padx=10)
 
-        except Exception as e:
-            messagebox.showerror("Database Error", f"Failed to create user: {e}")
-            
-    
-    # Create button
-    ttk.Button(create_frame, text="Create User", command=create_user).grid(row=10, column=0, columnspan=2, pady=20)
-    close_btn = ttk.Button(root, text="Close Admin Panel", command=root.destroy)
-    close_btn.pack(pady=10)
-    
-    load_users()
-    
+    # Organization Frame
+    org_frame = tk.Frame(root, bg="white")
+    org_frame.pack(fill="both", expand=True, padx=20, pady=10)
+
+    # Pagination Frame
+    pagination_frame = tk.Frame(root, bg="white")
+    pagination_frame.pack(pady=5)
+
+    organizations = []
+    current_page = [0]
+
+    def fetch_organizations():
+        conn = get_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT org_id, org_name FROM organization ORDER BY org_name ASC")
+        orgs = cur.fetchall()
+        conn.close()
+        return orgs
+
+    def set_page(page_num):
+        current_page[0] = page_num
+        populate_organization_buttons()
+
+    def refresh_data():
+        nonlocal organizations
+        organizations = fetch_organizations()
+        set_page(0)
+
+    def populate_organization_buttons():
+        for widget in org_frame.winfo_children():
+            widget.destroy()
+        for widget in pagination_frame.winfo_children():
+            widget.destroy()
+
+        if not organizations:
+            return
+
+        total_orgs = len(organizations)
+        total_pages = (total_orgs + ITEMS_PER_PAGE - 1) // ITEMS_PER_PAGE
+        page = current_page[0]
+
+        start_index = page * ITEMS_PER_PAGE
+        end_index = min(start_index + ITEMS_PER_PAGE, total_orgs)
+        current_orgs = organizations[start_index:end_index]
+
+        cols = 3
+        for index, (org_id, org_name) in enumerate(current_orgs):
+            row, col = divmod(index, cols)
+            btn = tk.Button(org_frame, text=org_name,
+                            command=lambda oid=org_id, oname=org_name: open_president_panel(root, True, oname, oid),
+                            bg=BUTTON_COLOR, fg=BUTTON_TEXT_COLOR, font=TITLE_FONT,
+                            width=25, height=4, relief="flat")
+            btn.grid(row=row, column=col, padx=10, pady=10, sticky="nsew")
+
+        for c in range(cols):
+            org_frame.grid_columnconfigure(c, weight=1)
+
+        if total_pages > 1:
+            if page > 0:
+                tk.Button(pagination_frame, text="Previous", command=lambda: set_page(page - 1),
+                          bg=BUTTON_COLOR, fg=BUTTON_TEXT_COLOR, font=("Arial", 10)).pack(side="left", padx=5)
+            tk.Label(pagination_frame, text=f"Page {page + 1} of {total_pages}",
+                     font=("Arial", 10), bg="white").pack(side="left", padx=10)
+            if page < total_pages - 1:
+                tk.Button(pagination_frame, text="Next", command=lambda: set_page(page + 1),
+                          bg=BUTTON_COLOR, fg=BUTTON_TEXT_COLOR, font=("Arial", 10)).pack(side="left", padx=5)
+
+    # Initial load
+    refresh_data()
+
     def on_close():
         root.grab_release()
         root.destroy()
-    
+
     root.protocol("WM_DELETE_WINDOW", on_close)
-    
-    # Wait until this window is closed before returning to the main window
     root.wait_window()
