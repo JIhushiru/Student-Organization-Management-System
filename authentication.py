@@ -2,22 +2,33 @@ import bcrypt
 from db_connection import get_connection
 
 def hash_password(password):
+    """Password hash"""
     hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
     return hashed_password.decode('utf-8')
 
 def is_admin(organization):
-    return organization == None
+    """Checker if admin"""
+    return organization is None
 
 def authenticate_user(action, username, password):
+    """User Authentication"""
     try:
         conn = get_connection()
         cur = conn.cursor()
 
         if action == "login":
-            cur.execute("""SELECT u.username, u.password, u.user_type, u.organization, u.mem_id, o.org_id, o.org_name, o.type
-                           FROM userdata u
-                           LEFT JOIN ORGANIZATION o ON u.organization = o.org_name
-                           WHERE u.username = ?;
+            cur.execute("""
+                        SELECT 
+                                u.username, 
+                                u.password, 
+                                u.user_type,
+                                o.org_name,
+                                u.mem_id, 
+                                o.org_id
+                            FROM USERDATA u
+                            LEFT JOIN SERVES s ON u.mem_id = s.mem_id
+                            LEFT JOIN ORGANIZATION o ON s.org_id = o.org_id
+                            WHERE u.username = ?
                         """, (username,))
             user_record = cur.fetchone()
             if user_record:
@@ -30,10 +41,10 @@ def authenticate_user(action, username, password):
                     org_id = 0
                 if bcrypt.checkpw(password.encode('utf-8'), stored_hash.encode('utf-8')):
                     if user_type == "admin":
-                        return "SUPERADMIN_LOGIN_SUCCESS"
+                        return "ADMIN_LOGIN_SUCCESS"
                     elif user_type == "president":
-                        return ("LOGIN_SUCCESS", organization, org_id)
-                    elif user_type == "member":
+                        return ("PRESIDENT_LOGIN_SUCCESS", organization, org_id)
+                    elif user_type!= "Member":
                         return ("MEMBER_LOGIN_SUCCESS", "", mem_id)
                     else:
                         return "Unknown user type!"
@@ -43,6 +54,5 @@ def authenticate_user(action, username, password):
                 return "User not found!"
 
         return "Invalid action"
-    except Exception as e:
+    except ImportError as e:
         return f"Error: {e}"
-

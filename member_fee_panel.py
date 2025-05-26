@@ -97,9 +97,13 @@ def show_member_fee_panel(root, member_id):
         if unpaid_count == 0:
             unpaid_tree.insert("", "end", values=("none", "", "", "", "", ""))
 
-    except Exception as e:
+    except ImportError as e:
         messagebox.showerror("Error", f"An error occurred while fetching fees: {e}")
 
     finally:
         cur.close()
         conn.close()
+
+    # Back button
+    back_button = tk.Button(root, text="Back", command=root.destroy)
+    back_button.pack(pady=10)

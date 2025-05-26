@@ -55,8 +55,7 @@ CREATE TABLE userdata (
     	user_id INT AUTO_INCREMENT PRIMARY KEY,
     	username VARCHAR(50) NOT NULL UNIQUE,
     	password VARCHAR(255) NOT NULL,
-   		user_type ENUM('admin', 'president', 'member') NOT NULL,
-		organization VARCHAR(50),
+   		user_type ENUM('admin', 'president', 'user'),
 		mem_id INT,
 		FOREIGN KEY (mem_id) REFERENCES MEMBER(mem_id)
 );
@@ -122,6 +121,7 @@ INSERT INTO ORGANIZATION VALUES
 -- Insert SERVES 
 INSERT INTO SERVES VALUES
 (1001, 1, 'President', 'Active', 'Executive', '1st', '2024-2025'),
+(1030, 13, 'Member', 'Active', 'Publications', '1st', '2024-2025'),
 (1002, 2, 'Member', 'Inactive', 'Publications', '2nd', '2024-2025'),
 (1003, 4, NULL, 'Expelled', NULL, '2nd', '2024-2025'),
 (1004, 5, 'Treasurer', 'Active', 'Executive', '1st', '2024-2025'),
@@ -177,8 +177,53 @@ INSERT INTO FEE VALUES
 (120, 1027, 8, '2024-2025', '1st', '2024-08-01', 'Semestral', 150.00, 'Paid', '2024-08-05'),
 (121, 1028, 2, '2023-2024', '2nd', '2024-01-20', 'Semestral', 150.00, 'Paid', '2024-02-01'),
 (122, 1029, 3, '2024-2025', '2nd', '2025-02-15', 'Membership', 200.00, 'Unpaid', NULL),
+(123, 1030, 4, '2023-2024', '1st', '2023-07-20', 'Membership', 200.00, 'Paid', '2023-07-25'),
+(124, 1030, 13, '2024-2025', '2nd', '2025-01-01', 'Membership', 200.00, 'Unpaid', '2025-04-01');
+
+
+
 (123, 1030, 4, '2023-2024', '1st', '2023-07-20', 'Membership', 200.00, 'Paid', '2023-07-25');
 
+-- INSERT INTO userdata (username, password, user_type, organization, mem_id) VALUES
+-- ('superadmin', '$2b$12$AHxFKMjQBZscM2gl1Resvepco341TN2Q9WztlNcvx0bO2MryKEnmm', 'admin', NULL, NULL),
+-- ('pres', '$2b$12$l.vNxZkiIMlA4zoPrB5YIeo05H54Yj2EFOArknAhy6vZV8YyDPe6e', 'president', 'Statistics Organization', NULL),
+-- ('jcreyes', '$2b$12$EqJnuqGobSjXEuPkOKHFDOhIpiWId0BPPkgrid/hNrlbnixhQ.6dS', 'member', 'Computer Science Organization',NULL);
+INSERT INTO userdata (username, password, user_type, mem_id) VALUES
+('superadmin', '$2b$12$AHxFKMjQBZscM2gl1Resvepco341TN2Q9WztlNcvx0bO2MryKEnmm', 'admin', NULL),
+('Arsolon', '$2b$12$AHxFKMjQBZscM2gl1Resvepco341TN2Q9WztlNcvx0bO2MryKEnmm', 'admin', NULL),
+('Garcia', '$2b$12$AHxFKMjQBZscM2gl1Resvepco341TN2Q9WztlNcvx0bO2MryKEnmm', 'admin', NULL),
+('Ignaco', '$2b$12$AHxFKMjQBZscM2gl1Resvepco341TN2Q9WztlNcvx0bO2MryKEnmm', 'admin', NULL),
+('Peligro', '$2b$12$AHxFKMjQBZscM2gl1Resvepco341TN2Q9WztlNcvx0bO2MryKEnmm', 'admin', NULL),
+('jcreyes', '$2b$12$EqJnuqGobSjXEuPkOKHFDOhIpiWId0BPPkgrid/hNrlbnixhQ.6dS', 'president', 1001), -- President
+('misantos', '$2b$12$EqJnuqGobSjXEuPkOKHFDOhIpiWId0BPPkgrid/hNrlbnixhQ.6dS', 'user', 1002),
+('jacruz', '$2b$12$EqJnuqGobSjXEuPkOKHFDOhIpiWId0BPPkgrid/hNrlbnixhQ.6dS', 'user', 1003),
+('mglopez', '$2b$12$EqJnuqGobSjXEuPkOKHFDOhIpiWId0BPPkgrid/hNrlbnixhQ.6dS', 'user', 1004),
+('altorres', '$2b$12$EqJnuqGobSjXEuPkOKHFDOhIpiWId0BPPkgrid/hNrlbnixhQ.6dS', 'user', 1005),
+('pdgarcia', '$2b$12$EqJnuqGobSjXEuPkOKHFDOhIpiWId0BPPkgrid/hNrlbnixhQ.6dS', 'user', 1006),
+('andelacruz', '$2b$12$EqJnuqGobSjXEuPkOKHFDOhIpiWId0BPPkgrid/hNrlbnixhQ.6dS', 'user', 1007),
+('cmfernandez', '$2b$12$EqJnuqGobSjXEuPkOKHFDOhIpiWId0BPPkgrid/hNrlbnixhQ.6dS', 'user', 1008),
+('mldomingo', '$2b$12$EqJnuqGobSjXEuPkOKHFDOhIpiWId0BPPkgrid/hNrlbnixhQ.6dS', 'user', 1009),
+('pamendoza', '$2b$12$EqJnuqGobSjXEuPkOKHFDOhIpiWId0BPPkgrid/hNrlbnixhQ.6dS', 'user', 1010),
+('pamendoza1', '$2b$12$EqJnuqGobSjXEuPkOKHFDOhIpiWId0BPPkgrid/hNrlbnixhQ.6dS', 'user', 1011),
+('esvargas', '$2b$12$EqJnuqGobSjXEuPkOKHFDOhIpiWId0BPPkgrid/hNrlbnixhQ.6dS', 'user', 1012),
+('lmsalazar', '$2b$12$EqJnuqGobSjXEuPkOKHFDOhIpiWId0BPPkgrid/hNrlbnixhQ.6dS', 'President', 1013), -- President
+('ifjimenez', '$2b$12$EqJnuqGobSjXEuPkOKHFDOhIpiWId0BPPkgrid/hNrlbnixhQ.6dS', 'user', 1014),
+('dlpena', '$2b$12$EqJnuqGobSjXEuPkOKHFDOhIpiWId0BPPkgrid/hNrlbnixhQ.6dS', 'user', 1015),
+('sagonzalez', '$2b$12$EqJnuqGobSjXEuPkOKHFDOhIpiWId0BPPkgrid/hNrlbnixhQ.6dS', 'user', 1016),
+('mahernandez', '$2b$12$EqJnuqGobSjXEuPkOKHFDOhIpiWId0BPPkgrid/hNrlbnixhQ.6dS', 'user', 1017),
+('velopez', '$2b$12$EqJnuqGobSjXEuPkOKHFDOhIpiWId0BPPkgrid/hNrlbnixhQ.6dS', 'user', 1018),
+('ajr', '$2b$12$EqJnuqGobSjXEuPkOKHFDOhIpiWId0BPPkgrid/hNrlbnixhQ.6dS', 'user', 1019),
+('gamartinez', '$2b$12$EqJnuqGobSjXEuPkOKHFDOhIpiWId0BPPkgrid/hNrlbnixhQ.6dS', 'user', 1020),
+('jmrosario', '$2b$12$EqJnuqGobSjXEuPkOKHFDOhIpiWId0BPPkgrid/hNrlbnixhQ.6dS', 'user', 1021),
+('clim', '$2b$12$EqJnuqGobSjXEuPkOKHFDOhIpiWId0BPPkgrid/hNrlbnixhQ.6dS', 'user', 1022),
+('nltan', '$2b$12$EqJnuqGobSjXEuPkOKHFDOhIpiWId0BPPkgrid/hNrlbnixhQ.6dS', 'user', 1023),
+('cjy', '$2b$12$EqJnuqGobSjXEuPkOKHFDOhIpiWId0BPPkgrid/hNrlbnixhQ.6dS', 'user', 1024),
+('epzamora', '$2b$12$EqJnuqGobSjXEuPkOKHFDOhIpiWId0BPPkgrid/hNrlbnixhQ.6dS', 'user', 1025),
+('rmsoriano', '$2b$12$EqJnuqGobSjXEuPkOKHFDOhIpiWId0BPPkgrid/hNrlbnixhQ.6dS', 'user', 1026),
+('dvchua', '$2b$12$EqJnuqGobSjXEuPkOKHFDOhIpiWId0BPPkgrid/hNrlbnixhQ.6dS', 'user', 1027),
+('lauy', '$2b$12$EqJnuqGobSjXEuPkOKHFDOhIpiWId0BPPkgrid/hNrlbnixhQ.6dS', 'user', 1028),
+('hrbautista', '$2b$12$EqJnuqGobSjXEuPkOKHFDOhIpiWId0BPPkgrid/hNrlbnixhQ.6dS', 'user', 1029),
+('njflores', '$2b$12$EqJnuqGobSjXEuPkOKHFDOhIpiWId0BPPkgrid/hNrlbnixhQ.6dS', 'user', 1030);
 INSERT INTO userdata (username, password, user_type, organization, mem_id) VALUES
 ('superadmin', '$2b$12$AHxFKMjQBZscM2gl1Resvepco341TN2Q9WztlNcvx0bO2MryKEnmm', 'admin', NULL, NULL),
 ('pres', '$2b$12$l.vNxZkiIMlA4zoPrB5YIeo05H54Yj2EFOArknAhy6vZV8YyDPe6e', 'president', 'Statistics Organization', NULL),

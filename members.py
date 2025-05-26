@@ -2,6 +2,7 @@
 import tkinter as tk
 
 from tkinter import ttk, messagebox
+from authentication import hash_password
 
 # COLOR SCHEME AND FONTS
 primary_color = "#0078D4"
@@ -115,7 +116,11 @@ def show_member_table(root, cur, org_id):
             refresh_member_table(root, cur, filters, selected_col, org_id)
 
     sort_menu = tk.OptionMenu(right_tools_frame, sort_var, *sort_options, command=on_sort_select)
-    sort_menu.config(relief="flat", font=modern_font, bg="white", highlightthickness=1, borderwidth=1)
+    sort_menu.config(relief="flat",
+        font=modern_font,
+        bg="white",
+        highlightthickness=1,
+        borderwidth=1)
     sort_menu.pack(side="left")
 
     def reset_all():
@@ -157,13 +162,15 @@ def show_member_table(root, cur, org_id):
         selected = root.tree.selection()
         if not selected:
             return
-        confirm = messagebox.askyesno("Delete", "Are you sure you want to delete the selected member?")
+        confirm = messagebox.askyesno("Delete",
+            "Are you sure you want to delete the selected member?")
         if not confirm:
             return
 
         for item in selected:
             values = root.tree.item(item, "values")
             member_id = values[0]
+            cur.execute("DELETE FROM userdata WHERE mem_id = %s", (member_id,))
             cur.execute("DELETE FROM fee WHERE mem_id = %s", (member_id,))
             cur.execute("DELETE FROM serves WHERE mem_id = %s", (member_id,))
             cur.execute("DELETE FROM member WHERE mem_id = %s", (member_id,))
@@ -192,17 +199,22 @@ def show_member_table(root, cur, org_id):
             batch = batch_var.get()
 
             try:
-                cur.execute(""" 
+                cur.execute("""
                     UPDATE member SET
                     first_name = %s, second_name = %s, surname = %s,
                     email = %s, deg_prog = %s, year_mem = %s,
                     gender = %s, batch = %s
                     WHERE mem_id = %s
-                """, (first_name, second_name, surname, email, deg_prog, year_mem, gender, batch, member_id))
+                """, (first_name,
+                      second_name, surname,
+                      email, deg_prog,
+                      year_mem, gender,
+                      batch,
+                      member_id))
                 cur.connection.commit()
                 refresh_member_table(root, cur, {}, "", org_id)
                 edit_window.destroy()
-            except Exception as e:
+            except ImportError as e:
                 messagebox.showerror("Error", str(e))
 
         edit_window = tk.Toplevel(root)
@@ -275,22 +287,26 @@ def show_member_table(root, cur, org_id):
         tk.Label(add_window, text="Batch").grid(row=7, column=0)
         new_batch = tk.Entry(add_window)
         new_batch.grid(row=7, column=1)
-        
+    
         tk.Label(add_window, text="Role").grid(row=8, column=0)
         new_role = tk.Entry(add_window)
         new_role.grid(row=8, column=1)
-        
+   
         tk.Label(add_window, text="Committee").grid(row=9, column=0)
         new_committee = tk.Entry(add_window)
         new_committee.grid(row=9, column=1)
-        
+
         tk.Label(add_window, text="Semester").grid(row=10, column=0)
         new_semester = ttk.Combobox(add_window, values=["1st", "2nd", "Midyear"])
         new_semester.grid(row=10, column=1)
-        
+
         tk.Label(add_window, text="Academic Year").grid(row=11, column=0)
         new_academic_year = tk.Entry(add_window)
         new_academic_year.grid(row=11, column=1)
+
+        tk.Label(add_window, text="Password").grid(row=12, column=0)
+        new_pass = tk.Entry(add_window)
+        new_pass.grid(row=12, column=1)
 
         def save_new_member(root, cur, org_id):
             # Gather all input values
@@ -306,6 +322,7 @@ def show_member_table(root, cur, org_id):
             committee = new_committee.get()
             semester = new_semester.get()
             academic_year = new_academic_year.get()
+            password = new_pass.get()
 
             # Insert member into the MEMBER table (mem_id is auto-incremented)
             try:
@@ -313,29 +330,41 @@ def show_member_table(root, cur, org_id):
                     INSERT INTO member (first_name, second_name, surname, email, deg_prog, year_mem, gender, batch) 
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                 """, (first_name, second_name, surname, email, deg_prog, year_mem, gender, batch))
-                
+
                 # Get the last inserted mem_id
                 cur.execute("SELECT LAST_INSERT_ID()")
                 mem_id = cur.fetchone()[0]
-                
-                # Insert into SERVES table with the provided role, committee, semester, and academic year
+                # Insert into SERVES table with the provided role, 
+                # committee, semester, and academic year
                 cur.execute("""
                     INSERT INTO serves (mem_id, org_id, role, status, committee, semester, academic_year) 
                     VALUES (%s, %s, %s, %s, %s, %s, %s)
                 """, (mem_id, org_id, role, "Active", committee, semester, academic_year))
 
+                username = email.split('@')[0]
+                hashed_password = hash_password(password)
+                cur.execute("""
+                    INSERT INTO userdata (username, password, , user_type, mem_id)
+                    VALUES (%s, %s, %s, %s)
+                """, (username, (hashed_password), 'user', mem_id))
+
                 # Commit the changes and refresh the table
                 cur.connection.commit()
                 refresh_member_table(root, cur, {}, "", org_id)
                 add_window.destroy()  # Close the window after saving
-            except Exception as e:
-                messagebox.showerror("Error", str(e))  # Show an error message if something goes wrong
+            except ImportError as e:
+                messagebox.showerror("Error",
+                    str(e))  # Show an error message if something goes wrong
 
         # Create a button to save the member data
-        save_button = tk.Button(add_window, text="Save Member", command=lambda: save_new_member(root, cur, org_id))
-        save_button.grid(row=12, column=0, columnspan=2)
+        save_button = tk.Button(add_window,
+            text="Save Member",
+            command=lambda: save_new_member(root, cur, org_id))
+        save_button.grid(row=13, column=0, columnspan=2)
 
-    add_btn = tk.Button(button_frame, text="Add Member", command=lambda: add_member(root, cur, org_id))
+    add_btn = tk.Button(button_frame,
+        text="Add Member",
+        command=lambda: add_member(root, cur, org_id))
     add_btn.pack(side="left", padx=10)
     style_button(add_btn)
 
@@ -351,6 +380,7 @@ def show_member_table(root, cur, org_id):
 
 
 def refresh_member_table(root, cur, filters, sort_by, org_id):
+    """Refresh table"""
     base_query = """
 SELECT 
     m.mem_id, 

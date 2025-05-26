@@ -101,7 +101,9 @@ def open_superadmin_panel(root):
                     (org_name, org_type)
                 )
                 conn.commit()
-                messagebox.showinfo("Success", f"'{org_name}' added successfully!")
+                messagebox.showinfo("Success",
+                    f"'{org_name}' added successfully!",
+                    parent=add_window)
                 add_window.destroy()
                 refresh_data()
             except mariadb.Error as e:
@@ -176,7 +178,9 @@ def open_superadmin_panel(root):
                     cursor.execute("DELETE FROM serves WHERE org_id = ?", (org_id,))
                     cursor.execute("DELETE FROM organization WHERE org_id = ?", (org_id,))
                     conn.commit()
-                    messagebox.showinfo("Deleted", "Organization deleted successfully.", parent=delete_window)
+                    messagebox.showinfo("Deleted",
+                        "Organization deleted successfully.",
+                        parent=delete_window)
                     delete_window.destroy()
                     refresh_data()
                 except mariadb.Error as e:
@@ -192,6 +196,13 @@ def open_superadmin_panel(root):
             command=delete_selected,
             fg_color="#c0392b",hover_color="#1a1a40").pack(pady=10)
     # ------------------------------ User Functions----------------------------
+
+    def logout():
+        import main
+        confirm = messagebox.askyesno("Logout", "Are you sure you want to log out?")
+        if confirm:
+            root.destroy()
+
     # Add user function
     def show_add_user_form():
         add_window = ctk.CTkToplevel(root)
@@ -209,7 +220,7 @@ def open_superadmin_panel(root):
         root_height = root.winfo_height()
 
         width = 325
-        height = 225
+        height = 130
 
         x = root_x + (root_width // 2) - (width // 2)
         y = root_y + (root_height // 2) - (height // 2)
@@ -235,41 +246,25 @@ def open_superadmin_panel(root):
         pass_entry = ctk.CTkEntry(form_frame, width=200)
         pass_entry.grid(row=1, column=1, pady=5)
 
-        ctk.CTkLabel(form_frame,
-            text="User Type: ",
-            font=("Arial", 12),
-            text_color="black").grid(row=2, column=0, sticky="w", pady=2
-        )
-        type_entry = ctk.CTkEntry(form_frame, width=200)
-        type_entry.grid(row=2, column=1, pady=5)
-
-        ctk.CTkLabel(form_frame,
-            text="Organization: ",
-            font=("Arial", 12),
-            text_color="black").grid(row=3, column=0, sticky="w", pady=2
-        )
-        org_entry = ctk.CTkEntry(form_frame, width=200)
-        org_entry.grid(row=3, column=1, pady=5)
-
         def submit_user():
             username = username_entry.get().strip()
             password = hash_password(pass_entry.get().strip())
-            user_type = type_entry.get().strip()
-            organization = org_entry.get().strip()
 
-            if not username or not password or not organization:
+            if not username or not password:
                 messagebox.showwarning("Input Error", "All fields are required.")
                 return
             try:
                 conn = get_connection()
                 cursor = conn.cursor()
                 cursor.execute("""
-                        INSERT INTO userdata (username, password, user_type, organization) VALUES (?, ?, ?, ?)
+                        INSERT INTO userdata (username, password, user_type) VALUES (?, ?, 'admin')
                     """,
-                    (username, password, user_type, organization)
+                    (username, password)
                 )
                 conn.commit()
-                messagebox.showinfo("Success", f"'{username}' added successfully!")
+                messagebox.showinfo("Success",
+                    f"'{username}' added successfully!",
+                    parent=add_window)
                 add_window.destroy()
                 display_users()
             except mariadb.Error as e:
@@ -295,13 +290,7 @@ def open_superadmin_panel(root):
             conn = get_connection()
             cur = conn.cursor()
             # Fetch users except superadmin
-            cur.execute("""SELECT user_id,
-                username, 
-                user_type, 
-                organization 
-                FROM userdata 
-                WHERE username != 'superadmin'
-            """)
+            cur.execute("SELECT username from userdata where user_type = 'admin' and username != 'superadmin'")
             users = cur.fetchall()
             cur.close()
             conn.close()
@@ -323,11 +312,10 @@ def open_superadmin_panel(root):
                 text_color="gray").pack()
             return
 
-        for _, username, user_type, _ in users:
-            # Create a button or label for each user, customize as needed
-            user_text = f"{username} ({user_type})"
+        for username in users:
+            # Create a button or label for each user
             ctk.CTkLabel(users_container,
-                text=user_text,
+                text=username,
                 font=("Arial", 12),
                 anchor="w").pack(padx=0, pady=0)
 
@@ -335,7 +323,7 @@ def open_superadmin_panel(root):
     def show_delete_user_dialog():
         delete_window = ctk.CTkToplevel(root)
         delete_window.attributes('-topmost', True)
-        delete_window.title("Delete User")
+        delete_window.title("Delete Admin")
         delete_window.geometry("400x180")
         delete_window.configure(fg_color="white")
 
@@ -359,11 +347,11 @@ def open_superadmin_panel(root):
             text="Select a user to delete:",
             font=("Arial", 14)).pack(pady=10)
 
-        # Load users excluding superadmin
+        # Load admins excluding superadmin
         try:
             conn = get_connection()
             cursor = conn.cursor()
-            cursor.execute("SELECT user_id, username FROM userdata WHERE username != 'superadmin'")
+            cursor.execute("SELECT user_id, username from userdata where user_type = 'admin' and username != 'superadmin'")
             users = cursor.fetchall()
         except mariadb.Error as e:
             messagebox.showerror("Database Error", f"Failed to load users:\n{e}")
@@ -389,7 +377,8 @@ def open_superadmin_panel(root):
                 messagebox.showwarning("Selection Error", "Please select a user to delete.")
                 return
             user_id = int(selected.split("ID: ")[1].rstrip(")"))
-            confirm = messagebox.askyesno("Confirm Delete", "Are you sure you want to delete this user?",
+            confirm = messagebox.askyesno("Confirm Delete",
+                "Are you sure you want to delete this user?",
                 parent=delete_window)
             if confirm:
                 try:
@@ -397,7 +386,9 @@ def open_superadmin_panel(root):
                     cursor = conn.cursor()
                     cursor.execute("DELETE FROM userdata WHERE user_id = ?", (user_id,))
                     conn.commit()
-                    messagebox.showinfo("Deleted", "User deleted successfully.", parent=delete_window)
+                    messagebox.showinfo("Deleted",
+                        "User deleted successfully.",
+                        parent=delete_window)
                     delete_window.destroy()
                     display_users()
                 except mariadb.Error as e:
@@ -444,7 +435,7 @@ def open_superadmin_panel(root):
     ).pack(fill="x", pady=(0, 1))
 
     ctk.CTkLabel(sidebar_frame,
-        text="Users",
+        text="Admin Accounts",
         font=("Arial", 12, "bold"),
         text_color="black",
         anchor="center",
@@ -458,19 +449,26 @@ def open_superadmin_panel(root):
     display_users()
 
     ctk.CTkButton(sidebar_frame,
-        text="Create User",
+        text="Create Admin",
         command=show_add_user_form,
         hover_color="#1a1a40",
         fg_color=BUTTON_COLOR,
         text_color=BUTTON_TEXT_COLOR).pack(pady = (1,3), padx = 15)
-    
+
     ctk.CTkButton(sidebar_frame,
-        text="Delete User",
+        text="Delete Admin",
         command=show_delete_user_dialog,
         hover_color="#c33f31",
         fg_color="#942d22",
-        text_color="white").pack(pady=3, padx=15)
+        text_color="white").pack(pady = (1,3), padx = 15)
     
+    ctk.CTkButton(sidebar_frame,
+        text="Logout",
+        command=logout,
+        hover_color="#c33f31",
+        fg_color="#942d22",
+        text_color="white").pack(pady=3, padx=15)
+
     # -------------------------------- Organization Grid --------------------------------
     ctk.CTkLabel(content_frame,
         text="Select an organization:",
@@ -528,7 +526,7 @@ def open_superadmin_panel(root):
             row, col = divmod(index, cols)
             btn = ctk.CTkButton(org_frame,
                 text=org_name,
-                font=("Arial", 20, "bold"),
+                font=("Arial", 18, "bold"),
                 command=lambda oid=org_id,
                 oname=org_name: open_president_panel(root, True, oname, oid),
                 fg_color=BUTTON_COLOR,
