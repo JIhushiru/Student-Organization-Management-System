@@ -496,7 +496,7 @@ def open_president_panel(root, admin, org_name, org_id, name,show_login_callback
             # TO OPEN MEMBER FEE PANEL
             for widget in root.winfo_children():
                 widget.destroy()
-            show_member_fee_panel(root, mem_id, username, open_president_panel, admin, org_name, org_id)
+            show_member_fee_panel(root, mem_id, username,show_login_callback, open_president_panel, admin, org_name, org_id)
         else:
             messagebox.showerror("Not Found", "No president record found for this organization.")
 

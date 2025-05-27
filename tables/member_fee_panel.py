@@ -7,6 +7,7 @@ from setup.db_connection import get_connection
 from main_panels.president_panel import show_summary_reports_panel
 
 def show_member_fee_panel(root, member_id, username, show_login_callback, return_func=None, admin=None, org_name=None, org_id=None):
+    a = show_login_callback
     # Clear the window
     for widget in root.winfo_children():
         widget.destroy()
@@ -182,7 +183,7 @@ def show_member_fee_panel(root, member_id, username, show_login_callback, return
                 messagebox.showinfo("Success", "Account updated successfully.")
                 edit_win.destroy()
                 # Refresh the panel with the new username
-                show_member_fee_panel(root, member_id, new_username)
+                show_member_fee_panel(root, member_id, new_username, a)
             except Exception as e:
                 messagebox.showerror("Error", f"Failed to update account: {e}")
 
@@ -197,7 +198,7 @@ def show_member_fee_panel(root, member_id, username, show_login_callback, return
     edit_btn.pack(side="right", pady=10, padx=(0, 5), ipady=5, ipadx=5)
 
     def refresh_panel():
-        show_member_fee_panel(root, member_id, username, return_func, admin, org_name, org_id)
+        show_member_fee_panel(root, member_id, username,show_login_callback, return_func, admin, org_name, org_id)
 
     refresh_btn = tk.Button(
         top_nav,
