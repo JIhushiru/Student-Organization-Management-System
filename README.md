@@ -63,5 +63,3 @@ If database studorg does not exist, initialize it by running the initialize.py f
 
 ### Member Accounts (Non-Presidents)<br/>
 - (Various sample users) / `password123`<br/><br/>
-
- ![Image Alt](https://github.com/JIhushiru/127-project/blob/main/0712-Bad_Practices_in_Database_Design_-_Are_You_Making_These_Mistakes_Dan_Social.png?raw=true)
