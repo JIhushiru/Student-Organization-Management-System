@@ -352,11 +352,7 @@ def show_member_table(root, cur, org_id):
                     INSERT INTO userdata (username, password, user_type, mem_id)
                     VALUES (%s, %s, %s, %s)
                 """, (username, (hashed_password), type_input, mem_id))
-
-                # Commit the changes and refresh the table
-                # cur.connection.commit()
-                # refresh_member_table(root, cur, {}, "", org_id)
-                # add_window.destroy()  # Close the window after saving
+                
                 cur.connection.commit()
                 refresh_member_table(root, cur, {}, "", org_id)
                 add_window.destroy()  # Close the window after saving
