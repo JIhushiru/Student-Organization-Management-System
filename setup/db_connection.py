@@ -46,7 +46,7 @@ def run_studorg():
         conn = get_connection()
         cursor = conn.cursor()
 
-        with open("studorg.sql", "r") as file:
+        with open("sql_files/studorg.sql", "r") as file:
             sql_script = file.read()
 
         # Split the script into individual statements
@@ -71,7 +71,7 @@ def run_views():
         conn = get_connection()
         cursor = conn.cursor()
 
-        with open("views.sql", encoding="utf-8") as file:
+        with open("sql_files/views.sql", encoding="utf-8") as file:
             sql_script = file.read()
 
         # Split the script into individual statements

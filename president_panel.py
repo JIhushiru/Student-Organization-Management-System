@@ -7,9 +7,9 @@ import tkinter.font as tkFont
 from tkinter import messagebox
 import customtkinter as ctk
 
-from db_connection import get_connection
-from fee import show_fee_table
-from members import show_member_table
+from setup.db_connection import get_connection
+from tables.fee import show_fee_table
+from tables.members import show_member_table
 
 # DATABASE CONNECTION
 conn = get_connection()

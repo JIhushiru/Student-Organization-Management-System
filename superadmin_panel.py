@@ -4,8 +4,8 @@ import customtkinter as ctk
 import mariadb
 import os
 import sys
-from db_connection import get_connection
-from authentication import hash_password
+from setup.db_connection import get_connection
+from setup.authentication import hash_password
 from president_panel import open_president_panel
 
 BUTTON_COLOR = "#020325"
@@ -16,7 +16,7 @@ ITEMS_PER_PAGE = 16
 def open_superadmin_panel(root):
     """Load panel for admin"""
     # ----------------- Window -------------------
-    root.title("Admin View")
+    root.title("Organization Database Management")
     root.geometry("1300x650")
     root.configure(fg_color="white")
 

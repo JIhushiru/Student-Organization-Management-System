@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
-from db_connection import get_connection
+from setup.db_connection import get_connection
 
 def show_member_fee_panel(root, member_id):
     # Clear the window

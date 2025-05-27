@@ -1,5 +1,5 @@
 import bcrypt
-from db_connection import get_connection
+from setup.db_connection import get_connection
 
 def hash_password(password):
     """Password hash"""

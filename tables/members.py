@@ -1,8 +1,7 @@
 # IMPORT
 import tkinter as tk
-
 from tkinter import ttk, messagebox
-from authentication import hash_password
+from setup.authentication import hash_password
 
 # COLOR SCHEME AND FONTS
 primary_color = "#0078D4"
