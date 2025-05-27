@@ -6,7 +6,7 @@ from setup.authentication import hash_password
 from setup.db_connection import get_connection
 from main_panels.president_panel import show_summary_reports_panel
 
-def show_member_fee_panel(root, member_id, username, return_func=None, admin=None, org_name=None, org_id=None):
+def show_member_fee_panel(root, member_id, username, show_login_callback, return_func=None, admin=None, org_name=None, org_id=None):
     # Clear the window
     for widget in root.winfo_children():
         widget.destroy()
@@ -141,8 +141,9 @@ def show_member_fee_panel(root, member_id, username, return_func=None, admin=Non
 
     def logout():
         if messagebox.askyesno("Logout", "Are you sure you want to log out?"):
-            root.destroy()
-            os.execl(sys.executable, sys.executable, *sys.argv)
+            for widget in root.winfo_children():
+                widget.destroy()
+            show_login_callback()
 
     def open_edit_account_window():
         edit_win = tk.Toplevel(root)

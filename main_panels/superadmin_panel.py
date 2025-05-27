@@ -13,7 +13,8 @@ BUTTON_TEXT_COLOR = "white"
 TITLE_FONT = ("Arial", 12, "bold")
 ITEMS_PER_PAGE = 16
 
-def open_superadmin_panel(root, username):
+def open_superadmin_panel(root, username, show_login_callback):
+
     """Load panel for admin"""
     # ----------------- Window -------------------
     root.title("Organization Database Management")
@@ -201,8 +202,9 @@ def open_superadmin_panel(root, username):
 
     def logout():
         if messagebox.askyesno("Logout", "Are you sure you want to log out?"):
-            root.destroy()
-            os.execl(sys.executable, sys.executable, *sys.argv)
+            for widget in root.winfo_children():
+                widget.destroy()
+            show_login_callback()
 
     # Add user function
     def show_add_user_form():

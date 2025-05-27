@@ -17,7 +17,7 @@ conn = get_connection()
 cur = conn.cursor()
 
 # MAIN FUNCTION TO SET UP THE GUI FOR PRESIDENT PANEL
-def open_president_panel(root, admin, org_name, org_id, name):
+def open_president_panel(root, admin, org_name, org_id, name,show_login_callback):
     
     for widget in root.winfo_children():
         widget.destroy()
@@ -465,8 +465,9 @@ def open_president_panel(root, admin, org_name, org_id, name):
     # LOG OUT BUTTON
     def logout():
         if messagebox.askyesno("Logout", "Are you sure you want to log out?"):
-            root.destroy()
-            os.execl(sys.executable, sys.executable, *sys.argv)
+            for widget in root.winfo_children():
+                widget.destroy()
+            show_login_callback()
 
     logout_btn = tk.Button(
         top_nav,
