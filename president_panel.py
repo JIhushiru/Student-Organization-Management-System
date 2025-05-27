@@ -443,6 +443,25 @@ def open_president_panel(root, admin, org_name, org_id):
         back_btn.bind("<Enter>", on_enter)
         back_btn.bind("<Leave>", on_leave)
 
+    # LOG OUT BUTTON
+    def logout():
+        for widget in root.winfo_children():
+            widget.destroy()
+        import main
+        main.main_frame.pack(fill="both", expand=True)
+
+    logout_btn = tk.Button(
+        top_nav,
+        text="Log Out",
+        command=logout,
+        fg="white",
+        bg="#c0392b",
+        font=button_font,
+        relief="flat",
+        bd=0
+    )
+    logout_btn.pack(side="right", padx=5, pady=2, ipady=5, ipadx=2)
+
 # SUMMARY REPORTS PANEL GUI
 def show_summary_reports_panel(root, on_report_click):
     

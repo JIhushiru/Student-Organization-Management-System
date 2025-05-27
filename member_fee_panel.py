@@ -107,3 +107,12 @@ def show_member_fee_panel(root, member_id):
     # Back button
     back_button = tk.Button(root, text="Back", command=root.destroy)
     back_button.pack(pady=10)
+
+    def logout():
+        for widget in root.winfo_children():
+            widget.destroy()
+        import main
+        main.main_frame.pack(fill="both", expand=True)
+
+    logout_button = tk.Button(root, text="Log Out", command=logout, fg="white", bg="#c0392b", font=("Arial", 12, "bold"))
+    logout_button.pack(pady=10)

@@ -202,7 +202,7 @@ INSERT INTO userdata (username, password, user_type, mem_id) VALUES
 ('pamendoza', '$2b$12$EqJnuqGobSjXEuPkOKHFDOhIpiWId0BPPkgrid/hNrlbnixhQ.6dS', 'user', 1010),
 ('pamendoza1', '$2b$12$EqJnuqGobSjXEuPkOKHFDOhIpiWId0BPPkgrid/hNrlbnixhQ.6dS', 'user', 1011),
 ('esvargas', '$2b$12$EqJnuqGobSjXEuPkOKHFDOhIpiWId0BPPkgrid/hNrlbnixhQ.6dS', 'user', 1012),
-('lmsalazar', '$2b$12$EqJnuqGobSjXEuPkOKHFDOhIpiWId0BPPkgrid/hNrlbnixhQ.6dS', 'President', 1013), -- President
+('lmsalazar', '$2b$12$EqJnuqGobSjXEuPkOKHFDOhIpiWId0BPPkgrid/hNrlbnixhQ.6dS', 'president', 1013), -- President
 ('ifjimenez', '$2b$12$EqJnuqGobSjXEuPkOKHFDOhIpiWId0BPPkgrid/hNrlbnixhQ.6dS', 'user', 1014),
 ('dlpena', '$2b$12$EqJnuqGobSjXEuPkOKHFDOhIpiWId0BPPkgrid/hNrlbnixhQ.6dS', 'user', 1015),
 ('sagonzalez', '$2b$12$EqJnuqGobSjXEuPkOKHFDOhIpiWId0BPPkgrid/hNrlbnixhQ.6dS', 'user', 1016),
