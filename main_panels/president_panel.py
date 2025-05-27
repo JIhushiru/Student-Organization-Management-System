@@ -28,7 +28,7 @@ def open_president_panel(root, admin, org_name, org_id):
     ]
 
     # COLOR SCHEME AND FONTS
-    primary_color = "#0078D4"
+    primary_color = "#1a1a40"
     button_bg = "#00A4EF"
     button_hover_bg = "#0063B1"
     button_selected_bg = "#005A8D"
@@ -37,11 +37,11 @@ def open_president_panel(root, admin, org_name, org_id):
     button_font = ("Segoe UI", 12)
 
     # TOP NAVIGATION BAR
-    top_nav = tk.Frame(root, bg=primary_color, height=40)
+    top_nav = tk.Frame(root, bg=primary_color, height=50)
     top_nav.pack_propagate(False)  # Prevent shrinking
     top_nav.pack(side="top", fill="x")
     top_nav_title = tk.Label(top_nav, text=org_name, fg="white", bg=primary_color, font=title_font)
-    top_nav_title.pack(side="left", padx=10)
+    top_nav_title.pack(side="left", padx=(13,5))
 
     # HOVER EFFECTS AND BUTTON SELECTION
     def on_enter(e):
@@ -54,13 +54,13 @@ def open_president_panel(root, admin, org_name, org_id):
 
     selected_button = None  # Variable to track the selected button
 
-    def button_click(button, table_name): 
+    def button_click(button, table_name):
         nonlocal selected_button
         if selected_button:
-            selected_button.config(bg=button_bg)  
+            selected_button.config(bg=button_bg)
         button.config(bg=button_selected_bg)
-        selected_button = button  
-        load_table(table_name) 
+        selected_button = button
+        load_table(table_name)
 
     # TO CREATE BUTTONS IN THE TOP NAVIGATION BAR
     nav_buttons = []
@@ -75,9 +75,9 @@ def open_president_panel(root, admin, org_name, org_id):
         btn.config(command=lambda t=table, b=btn: button_click(b, t))
 
         if i == 0:
-            btn.pack(side="left", ipady=10, ipadx=10, padx=(3, 1), pady=2)  # More left margin
+            btn.pack(side="left", ipady=5, ipadx=5, padx=(3, 7), pady=7)  # More left margin
         else:
-            btn.pack(side="left", ipady=10, ipadx=10, padx=2, pady=2)
+            btn.pack(side="left", ipady=5, ipadx=5, padx=7, pady=7)
 
         # Default selected button is the "Home" button
         if text == "Home":
@@ -134,7 +134,7 @@ def open_president_panel(root, admin, org_name, org_id):
                 {"label": "Semester", "type": "combo", "options": ["1st", "2nd"], "default": "1st"},
                 {"label": "Academic Year", "type": "entry", "default": "2024-2025"}
             ]
-            values = ctk_prompt(main_area, "Filter Unpaid Membership Fees", fields)
+            values = ctk_prompt(root, "Filter Unpaid Membership Fees", fields)
             if not values or not isinstance(values, dict):
                 show_summary_reports_panel(main_area, load_table)
                 return
@@ -166,7 +166,7 @@ def open_president_panel(root, admin, org_name, org_id):
                 {"label": "Surname", "type": "text"},
                 {"label": "Member ID", "type": "text"},
             ]
-            values = ctk_prompt(main_area, "Filter Member Dues", fields)
+            values = ctk_prompt(root, "Filter Member Dues", fields)
 
             if not values or not isinstance(values, dict):
                 show_summary_reports_panel(main_area, load_table)
@@ -202,7 +202,7 @@ def open_president_panel(root, admin, org_name, org_id):
             fields = [
                 {"label": "Academic Year", "type": "entry", "default": "2024-2025"}
             ]
-            values = ctk_prompt(main_area, "Filter Executive Committee", fields)
+            values = ctk_prompt(root, "Filter Executive Committee", fields)
             
             if not values or not isinstance(values, dict):
                 show_summary_reports_panel(main_area, load_table)
@@ -235,7 +235,7 @@ def open_president_panel(root, admin, org_name, org_id):
             fields = [
                 {"label": "Role", "type": "entry", "default": "President"}
             ]
-            values = ctk_prompt(main_area, "Search Roles", fields)
+            values = ctk_prompt(root, "Search Roles", fields)
             if not values or not isinstance(values, dict):
                 show_summary_reports_panel(main_area, load_table)
                 return
@@ -261,7 +261,7 @@ def open_president_panel(root, admin, org_name, org_id):
                 {"label": "Semester", "type": "combo", "options": ["1st", "2nd"], "default": "1st"},
                 {"label": "Academic Year", "type": "entry", "default": "2024-2025"}
             ]
-            values = ctk_prompt(main_area, "Filter Late Payments", fields)
+            values = ctk_prompt(root, "Filter Late Payments", fields)
             if not values or not isinstance(values, dict):
                 show_summary_reports_panel(main_area, load_table)
                 return
@@ -284,7 +284,7 @@ def open_president_panel(root, admin, org_name, org_id):
             fields = [
                 {"label": "Number of Semesters", "type": "entry", "default": "2"}
             ]
-            values = ctk_prompt(main_area, "Filter Active Percentage", fields)
+            values = ctk_prompt(root, "Filter Active Percentage", fields)
             if not values or not isinstance(values, dict):
                 show_summary_reports_panel(main_area, load_table)
                 return
@@ -327,7 +327,7 @@ def open_president_panel(root, admin, org_name, org_id):
             fields = [
                 {"label": "Date (YYYY-MM-DD)", "type": "entry", "default": ""}
             ]
-            values = ctk_prompt(main_area, "Filter Alumni", fields)
+            values = ctk_prompt(root, "Filter Alumni", fields)
             if not values:
                 show_summary_reports_panel(main_area, load_table)
                 return
@@ -352,7 +352,7 @@ def open_president_panel(root, admin, org_name, org_id):
             fields = [
                 {"label": "As of Date (YYYY-MM-DD)", "type": "entry", "default": ""}
             ]
-            values = ctk_prompt(main_area, "Fee Summary as of Date", fields)
+            values = ctk_prompt(root, "Fee Summary as of Date", fields)
             if not values:
                 show_summary_reports_panel(main_area, load_table)
                 return
@@ -422,7 +422,7 @@ def open_president_panel(root, admin, org_name, org_id):
                 {"label": "Semester", "type": "combo", "options": ["1st", "2nd"], "default": "1st"},
                 {"label": "Academic Year", "type": "entry", "default": "2024-2025"}
             ]
-            values = ctk_prompt(main_area, "Filter Highest Debtors", fields)
+            values = ctk_prompt(root, "Filter Highest Debtors", fields)
             if not values:
                 show_summary_reports_panel(main_area, load_table)
                 return
@@ -456,7 +456,7 @@ def open_president_panel(root, admin, org_name, org_id):
     # SUPERADMIN BACK BUTTON
     if(admin):
         def go_back():
-            from superadmin_panel import open_superadmin_panel 
+            from main_panels.superadmin_panel import open_superadmin_panel 
             # Clear current panel
             for widget in root.winfo_children():
                 widget.destroy()
@@ -472,7 +472,7 @@ def open_president_panel(root, admin, org_name, org_id):
             relief="flat",
             bd=0
         )
-        back_btn.pack(side="right", padx=5, pady=2, ipady=5, ipadx=2)
+        back_btn.pack(side="right", ipady=5, ipadx=5, padx=7, pady=7)
         back_btn.bind("<Enter>", on_enter)
         back_btn.bind("<Leave>", on_leave)
 
@@ -492,7 +492,7 @@ def open_president_panel(root, admin, org_name, org_id):
         relief="flat",
         bd=0
     )
-    logout_btn.pack(side="right", padx=5, pady=2, ipady=5, ipadx=2)
+    logout_btn.pack(side="right", ipady=5, ipadx=5, padx=7, pady=7)
 
 # SUMMARY REPORTS PANEL GUI
 def show_summary_reports_panel(root, on_report_click):
@@ -561,38 +561,43 @@ def show_summary_reports_panel(root, on_report_click):
 
 
 # --- SMOOTH MODAL DIALOG FUNCTION ---
-def ctk_prompt(parent, title, fields):
+def ctk_prompt(root, title, fields):
     result = {}
 
-    popup = ctk.CTkToplevel(parent)
+    popup = ctk.CTkToplevel(root)
     popup.title(title)
-    popup.geometry("380x200")
-    popup.grab_set()
+    popup.geometry("400x240")
     popup.resizable(False, False)
     popup.configure(fg_color="white")
 
-    # DIALOGS
+    # Center the popup relative to the root window
+    root.update_idletasks()
     popup.update_idletasks()
-    parent.update_idletasks()
-    x = parent.winfo_rootx() + (parent.winfo_width() // 2) - 190
-    y = parent.winfo_rooty() + (parent.winfo_height() // 2) - 100
+    x = root.winfo_rootx() + (root.winfo_width() // 2) - 200
+    y = root.winfo_rooty() + (root.winfo_height() // 2) - 120
+    y -= 100
     popup.geometry(f"+{x}+{y}")
 
     frame = ctk.CTkFrame(popup, fg_color="white", corner_radius=15)
     frame.pack(fill="both", expand=True, padx=20, pady=20)
 
+    frame.grid_columnconfigure(0, weight=1)
+    frame.grid_columnconfigure(1, weight=1)
+
     vars = []
     for i, field in enumerate(fields):
-        ctk.CTkLabel(frame, text=field["label"] + ":", font=("Arial", 13), text_color="black").grid(row=i, column=0, sticky="w", pady=7, padx=5)
+        label = ctk.CTkLabel(frame, text=field["label"] + ":", font=("Arial", 13), text_color="black")
+        label.grid(row=i, column=0, sticky="e", pady=7, padx=5)
+        
         if field["type"] == "combo":
             var = ctk.StringVar(value=field.get("default", "Select"))
             combo = ctk.CTkComboBox(frame, variable=var, values=field["options"], width=180)
-            combo.grid(row=i, column=1, pady=7, padx=5)
+            combo.grid(row=i, column=1, pady=7, padx=5, sticky="w")
             vars.append(var)
         else:
             var = ctk.StringVar(value=field.get("default", ""))
             entry = ctk.CTkEntry(frame, textvariable=var, width=180)
-            entry.grid(row=i, column=1, pady=7, padx=5)
+            entry.grid(row=i, column=1, pady=7, padx=5, sticky="w")
             vars.append(var)
 
     error_label = ctk.CTkLabel(frame, text="", text_color="red", font=("Arial", 11))
@@ -605,17 +610,22 @@ def ctk_prompt(parent, title, fields):
                 error_label.configure(text="All fields required.")
                 return
             result[field["label"]] = val
-        popup.grab_release()
         popup.destroy()
 
     def on_cancel():
-        popup.grab_release()
         popup.destroy()
 
     btn_frame = ctk.CTkFrame(frame, fg_color="white")
     btn_frame.grid(row=len(fields), column=0, columnspan=2, pady=(15,0))
-    ctk.CTkButton(btn_frame, text="OK", command=on_ok, fg_color="#0078D4", text_color="white", width=90).pack(side="left", padx=8)
-    ctk.CTkButton(btn_frame, text="Cancel", command=on_cancel, fg_color="#c0392b", text_color="white", width=90).pack(side="left", padx=8)
+    btn_frame.grid_columnconfigure((0, 1), weight=1)
+    
+    ctk.CTkButton(btn_frame, text="OK", command=on_ok, fg_color="#0078D4", text_color="white", width=90).grid(row=0, column=0, padx=8)
+    ctk.CTkButton(btn_frame, text="Cancel", command=on_cancel, fg_color="#c0392b", text_color="white", width=90).grid(row=0, column=1, padx=8)
 
-    popup.wait_window()
+    popup.transient(root)  # Makes it stay on top of root, but not block it
+    popup.lift()           # Bring to front without blocking input to root
+    popup.focus_force()    # Focus on popup
+    popup.wait_window()    # Optional: wait for popup to close before continuing
+
     return result if result else None
+

@@ -6,7 +6,7 @@ import os
 import sys
 from setup.db_connection import get_connection
 from setup.authentication import hash_password
-from president_panel import open_president_panel
+from main_panels.president_panel import open_president_panel
 
 BUTTON_COLOR = "#020325"
 BUTTON_TEXT_COLOR = "white"
