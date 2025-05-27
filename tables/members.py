@@ -3,6 +3,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 from setup.authentication import hash_password
 
+
 # COLOR SCHEME AND FONTS
 primary_color = "#020325"
 button_bg = "#020325"
@@ -353,9 +354,16 @@ def show_member_table(root, cur, org_id):
                 """, (username, (hashed_password), type_input, mem_id))
 
                 # Commit the changes and refresh the table
+                # cur.connection.commit()
+                # refresh_member_table(root, cur, {}, "", org_id)
+                # add_window.destroy()  # Close the window after saving
                 cur.connection.commit()
                 refresh_member_table(root, cur, {}, "", org_id)
                 add_window.destroy()  # Close the window after saving
+
+                from tables.member_fee_panel import show_member_fee_panel
+                # --- Show the member fee panel for the new member ---
+                show_member_fee_panel(root, mem_id, username, return_func=None, admin=None, org_name=None, org_id=None)
             except ImportError as e:
                 messagebox.showerror("Error",
                     str(e))  # Show an error message if something goes wrong
