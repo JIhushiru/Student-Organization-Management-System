@@ -447,7 +447,7 @@ def open_president_panel(root, admin, org_name, org_id, name,show_login_callback
             for widget in root.winfo_children():
                 widget.destroy()
             # Reopen superadmin panel
-            open_superadmin_panel(root, name)
+            open_superadmin_panel(root, name, show_login_callback)
         back_btn = tk.Button(
             top_nav,
             text="Admin Page",

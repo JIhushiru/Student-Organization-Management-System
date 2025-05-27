@@ -531,7 +531,7 @@ def open_superadmin_panel(root, username, show_login_callback):
                 text=org_name,
                 font=("Arial", 18, "bold"),
                 command=lambda oid=org_id,
-                oname=org_name: open_president_panel(root, True, oname, oid, username),
+                oname=org_name: open_president_panel(root, True, oname, oid, username, show_login_callback),
                 fg_color=BUTTON_COLOR,
                 text_color=BUTTON_TEXT_COLOR,
                 width=100, height=100,
