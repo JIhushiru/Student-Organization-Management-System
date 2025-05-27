@@ -2,6 +2,7 @@ import tkinter as tk
 import os
 import sys
 from tkinter import ttk, messagebox
+from setup.authentication import hash_password
 from setup.db_connection import get_connection
 
 def show_member_fee_panel(root, member_id, username):
@@ -111,5 +112,54 @@ def show_member_fee_panel(root, member_id, username):
             root.destroy()
             os.execl(sys.executable, sys.executable, *sys.argv)
 
-    logout_button = tk.Button(top_nav, text="Log Out", command=logout, fg="white", bg="#c0392b", font=("Segoe UI", 12), relief="flat", bd = 0)
-    logout_button.pack(side = "right", pady=10, padx = 10, ipady = 5, ipadx = 5)
+    def open_edit_account_window():
+        edit_win = tk.Toplevel(root)
+        edit_win.title("Edit Account")
+        edit_win.geometry("300x200")
+        edit_win.grab_set()
+
+        tk.Label(edit_win, text="New Username:").pack(pady=(10, 0))
+        new_username_entry = tk.Entry(edit_win, width=30)
+        new_username_entry.pack(pady=(0, 10))
+
+        tk.Label(edit_win, text="New Password:").pack()
+        new_password_entry = tk.Entry(edit_win, width=30, show="*")
+        new_password_entry.pack(pady=(0, 10))
+
+        def update_account():
+            new_username = new_username_entry.get().strip()
+            new_password = hash_password(new_password_entry.get().strip())
+
+            if not new_username or not new_password:
+                messagebox.showerror("Error", "Both fields are required.")
+                return
+
+            try:
+                conn = get_connection()
+                cur = conn.cursor()
+                cur.execute("""
+                    UPDATE userdata
+                    SET username = %s, password = %s
+                    WHERE mem_id = %s
+                """, (new_username, new_password, member_id))
+                conn.commit()
+                cur.close()
+                conn.close()
+
+                messagebox.showinfo("Success", "Account updated successfully.")
+                edit_win.destroy()
+                # Refresh the panel with the new username
+                show_member_fee_panel(root, member_id, new_username)
+            except Exception as e:
+                messagebox.showerror("Error", f"Failed to update account: {e}")
+
+        save_btn = tk.Button(edit_win, text="Save Changes", command=update_account, bg="#2980b9", fg="white")
+        save_btn.pack(pady=10)
+
+    # --- Add Buttons to Top Nav ---
+
+    logout_button = tk.Button(top_nav, text="Log Out", command=logout, fg="white", bg="#c0392b", font=("Segoe UI", 12), relief="flat", bd=0)
+    logout_button.pack(side="right", pady=10, padx=(5, 10), ipady=5, ipadx=5)
+    edit_btn = tk.Button(top_nav, text="Edit Account", command=open_edit_account_window, fg="white", bg="#c0392b", font=("Segoe UI", 12), relief="flat", bd=0)
+    edit_btn.pack(side="right", pady=10, padx=(0, 5), ipady=5, ipadx=5)
+
