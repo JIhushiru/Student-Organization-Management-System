@@ -224,17 +224,26 @@ def open_president_panel(root, admin, org_name, org_id):
 
         elif table_name == "roles_per_year":
             # 5. Presidents for org, all years reverse order
+            fields = [
+                {"label": "Role", "type": "entry", "default": "President"}
+            ]
+            values = ctk_prompt(main_area, "Search Roles", fields)
+            if not values or not isinstance(values, dict):
+                show_summary_reports_panel(main_area, load_table)
+                return
+
+            role = values.get("Role")
             query = """
                 SELECT org_id,org_name, mem_id, concat(surname,', ',first_name,' ', second_name), academic_year, semester 
                 FROM RolesPerYear 
-                WHERE role = 'President' 
+                WHERE role = %s 
             """
             order = " ORDER BY academic_year DESC "
             if org_id != 0:
                 query = query + "AND org_id = %s"
-                cur.execute(query+order, (org_id,))
+                cur.execute(query+order, (role,org_id))
             else:
-                cur.execute(query+order)
+                cur.execute(query+order, (role,))
             rows = cur.fetchall()
             display_report(main_area, rows, ["org ID,","Organization","Mem ID", "Name", "Year", "Semester"])
 
@@ -342,7 +351,7 @@ def open_president_panel(root, admin, org_name, org_id):
 
             as_of_date = values.get("As of Date (YYYY-MM-DD)")
 
-            # Subquery calculates issued_date using your fixed logic for semester and academic_year
+            # Subquery calculates issued_date
             if org_id != 0:
                 cur.execute("""
                     SELECT
@@ -514,7 +523,7 @@ def show_summary_reports_panel(root, on_report_click):
         ("Unpaid Membership Fees", "unpaid"),
         ("Member Dues", "member_dues"),
         ("Executive Committee", "exec"),
-        ("List of Presidents", "roles_per_year"),
+        ("Search Roles", "roles_per_year"),
         ("Late Payments", "late_payments"),
         ("Status Percentage", "percentage"),
         ("Alumni", "alumni"),
