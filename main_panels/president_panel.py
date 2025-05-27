@@ -620,7 +620,7 @@ def ctk_prompt(root, title, fields):
     btn_frame.grid_columnconfigure((0, 1), weight=1)
     
     ctk.CTkButton(btn_frame, text="OK", command=on_ok, fg_color="#0078D4", text_color="white", width=90).grid(row=0, column=0, padx=8)
-    ctk.CTkButton(btn_frame, text="Cancel", command=on_cancel, fg_color="#c0392b", text_color="white", width=90).grid(row=0, column=1, padx=8)
+    ctk.CTkButton(btn_frame, text="Cancel", command=on_cancel, fg_color="#6c140a", text_color="white", width=90).grid(row=0, column=1, padx=8)
 
     popup.transient(root)  # Makes it stay on top of root, but not block it
     popup.lift()           # Bring to front without blocking input to root

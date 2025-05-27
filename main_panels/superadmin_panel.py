@@ -196,7 +196,7 @@ def open_superadmin_panel(root):
         ctk.CTkButton(delete_window,
             text="Delete",
             command=delete_selected,
-            fg_color="#c0392b",hover_color="#1a1a40").pack(pady=10)
+            fg_color="#6c140a",hover_color="#c0392b").pack(pady=10)
     # ------------------------------ User Functions----------------------------
 
     def logout():
@@ -403,8 +403,8 @@ def open_superadmin_panel(root):
         ctk.CTkButton(delete_window,
             text="Delete",
             command=delete_selected_user,
-            fg_color="#c0392b",
-            hover_color="#1a1a40").pack(pady=10)
+            fg_color="#6c140a",
+            hover_color="#c0392b").pack(pady=10)
 
     # ----------------------- Organization Buttons ---------------------------
     ctk.CTkButton(sidebar_frame,

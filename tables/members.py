@@ -4,9 +4,9 @@ from tkinter import ttk, messagebox
 from setup.authentication import hash_password
 
 # COLOR SCHEME AND FONTS
-primary_color = "#0078D4"
-button_bg = "#00A4EF"
-button_hover_bg = "#0063B1"
+primary_color = "#020325"
+button_bg = "#020325"
+button_hover_bg = "#1a1a40"
 main_area_bg = "#FFFFFF"
 title_font = ("Segoe UI", 11)
 button_font = ("Segoe UI", 10)
