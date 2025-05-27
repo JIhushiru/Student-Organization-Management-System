@@ -2,15 +2,43 @@ import mariadb
 
 def get_connection():
     try:
+        # Attempt to connect to 'studorg'
         return mariadb.connect(
             user="root",
-            password="251728",
+            password="kurt",
             host="localhost",
             database="studorg"
         )
-    except mariadb.Error as e:
-        print(f"Error connecting to MariaDB: {e}")
-        raise
+    except mariadb.ProgrammingError as e:
+        if "Unknown database 'studorg'" in str(e):
+            print("Database 'studorg' not found. Creating database...")
+            try:
+                # Connect without specifying a database
+                conn = mariadb.connect(
+                    user="root",
+                    password="kurt",
+                    host="localhost"
+                )
+                cursor = conn.cursor()
+                cursor.execute("CREATE DATABASE IF NOT EXISTS studorg")
+                conn.commit()
+                cursor.close()
+                conn.close()
+
+                # Try connecting again to 'studorg'
+                return mariadb.connect(
+                    user="root",
+                    password="kurt",
+                    host="localhost",
+                    database="studorg"
+                )
+            except mariadb.Error as creation_error:
+                print(f"Failed to create database: {creation_error}")
+                raise
+        else:
+            print(f"Error connecting to MariaDB: {e}")
+            raise
+
 
 
 def run_studorg():

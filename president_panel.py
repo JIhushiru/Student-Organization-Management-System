@@ -228,13 +228,13 @@ def open_president_panel(root, admin, org_name, org_id):
                 SELECT org_id,org_name, mem_id, concat(surname,', ',first_name,' ', second_name), academic_year, semester 
                 FROM RolesPerYear 
                 WHERE role = 'President' 
-                ORDER BY academic_year DESC
             """
+            order = " ORDER BY academic_year DESC "
             if org_id != 0:
                 query = query + "AND org_id = %s"
-                cur.execute(query, (org_id,))
+                cur.execute(query+order, (org_id,))
             else:
-                cur.execute(query)
+                cur.execute(query+order)
             rows = cur.fetchall()
             display_report(main_area, rows, ["org ID,","Organization","Mem ID", "Name", "Year", "Semester"])
 
@@ -302,7 +302,7 @@ def open_president_panel(root, admin, org_name, org_id):
             # Fetch all data from those n semesters
             conditions = []
             params = []
-            for sem, year in recent_terms:
+            for sem, year, _ in recent_terms:
                 conditions.append("(semester = %s AND academic_year = %s)")
                 params.extend([sem, year])
 
@@ -341,7 +341,6 @@ def open_president_panel(root, admin, org_name, org_id):
             rows = cur.fetchall()
             display_report(main_area, rows, ["Org ID","Organization", "Mem ID", "Name", "Year", "Semester"])
 
-        
         elif table_name == "fee_summary":
             # 9. Total fees paid/unpaid as of a given date
             fields = [
@@ -354,34 +353,62 @@ def open_president_panel(root, admin, org_name, org_id):
 
             as_of_date = values.get("As of Date (YYYY-MM-DD)")
 
+            # Subquery calculates issued_date using your fixed logic for semester and academic_year
             if org_id != 0:
                 cur.execute("""
-                    SELECT org_id, 
-                        SUM(CASE WHEN status = 'Paid' THEN amount ELSE 0 END) AS total_paid,
-                        SUM(CASE WHEN status = 'Unpaid' THEN amount ELSE 0 END) AS total_unpaid
-                    FROM Fee
-                    WHERE date_paid <= %s AND org_id = %s
-                """, (as_of_date, org_id))
+                    SELECT
+                        org_id,
+                        SUM(amount) AS total_fees,
+                        SUM(CASE
+                            WHEN status = 'Paid' AND date_paid <= %s THEN amount
+                            ELSE 0
+                        END) AS total_paid,
+                        SUM(amount) - SUM(CASE
+                            WHEN status = 'Paid' AND date_paid <= %s THEN amount
+                            ELSE 0
+                        END) AS total_unpaid
+                    FROM (
+                        SELECT *,
+                            CASE
+                                WHEN semester_issued = '1st' THEN DATE(CONCAT(SUBSTRING_INDEX(academic_year_issued, '-', -1), '-01-01'))
+                                WHEN semester_issued = '2nd' THEN DATE(CONCAT(SUBSTRING_INDEX(academic_year_issued, '-', -1), '-07-01'))
+                                ELSE NULL
+                            END AS issued_date
+                        FROM Fee
+                    ) AS f
+                    WHERE issued_date <= %s
+                    AND org_id = %s
+                    GROUP BY org_id
+                """, (as_of_date, as_of_date, as_of_date, org_id))
             else:
                 cur.execute("""
                     SELECT
-                        SUM(CASE WHEN status = 'Paid' THEN amount ELSE 0 END) AS total_paid,
-                        SUM(CASE WHEN status = 'Unpaid' THEN amount ELSE 0 END) AS total_unpaid
-                    FROM Fee
-                    WHERE date_paid <= %s
-                """, (as_of_date,))
+                        org_id,
+                        SUM(amount) AS total_fees,
+                        SUM(CASE
+                            WHEN status = 'Paid' AND date_paid <= %s THEN amount
+                            ELSE 0
+                        END) AS total_paid,
+                        SUM(amount) - SUM(CASE
+                            WHEN status = 'Paid' AND date_paid <= %s THEN amount
+                            ELSE 0
+                        END) AS total_unpaid
+                    FROM (
+                        SELECT *,
+                            CASE
+                                WHEN semester_issued = '1st' THEN DATE(CONCAT(SUBSTRING_INDEX(academic_year_issued, '-', -1), '-01-01'))
+                                WHEN semester_issued = '2nd' THEN DATE(CONCAT(SUBSTRING_INDEX(academic_year_issued, '-', -1), '-07-01'))
+                                ELSE NULL
+                            END AS issued_date
+                        FROM Fee
+                    ) AS f
+                    WHERE issued_date <= %s
+                    GROUP BY org_id
+                """, (as_of_date, as_of_date, as_of_date))
 
-            row = cur.fetchone()
-            total_paid = row[0] if row and row[0] else 0
-            total_unpaid = row[1] if row and row[1] else 0
+            rows = cur.fetchall()
 
-            # Display result
-            display_report(
-                main_area,
-                [(total_paid, total_unpaid)],
-                ["Total Paid as of " + as_of_date, "Total Unpaid as of " + as_of_date]
-            )
-
+            display_report(main_area, rows, ["Org ID", "Total Fees", "Total Paid", "Total Unpaid"])
 
         elif table_name == "highest_debt":
             # Highest debtors for org by semester and academic year
