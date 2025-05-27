@@ -264,7 +264,6 @@ def open_president_panel(root, admin, org_name, org_id):
             display_report(main_area, rows, ["Org ID","Organization","ID", "Name", "Type", "Amount", "Year", "Semester", "Due Date", "Date Paid"])
         
         elif table_name == "percentage":
-            # 7. Active vs inactive percentage for last n semesters
             fields = [
                 {"label": "Number of Semesters", "type": "entry", "default": "2"}
             ]
@@ -275,46 +274,36 @@ def open_president_panel(root, admin, org_name, org_id):
 
             n_semesters = int(values.get("Number of Semesters"))
 
-            # Get last n (semester, year) combinations
             if org_id != 0:
                 cur.execute("""
-                    SELECT DISTINCT semester, academic_year, org_id
-                    FROM percentage
-                    WHERE org_id = %s
-                    ORDER BY academic_year DESC, 
-                            FIELD(semester, '2nd', 'Midyear', '1st')  -- custom semester order
-                    LIMIT %s
-                """, (org_id, n_semesters))
+                    SELECT p.org_id, p.org_name, p.semester, p.academic_year,p.num_members,p.active_members,p.active_percentage
+                    FROM percentage p
+                    JOIN (
+                        SELECT DISTINCT academic_year, semester
+                        FROM percentage
+                        WHERE org_id = %s
+                        ORDER BY academic_year DESC,
+                                FIELD(semester, '2nd', 'Midyear', '1st')
+                        LIMIT %s
+                    ) recent ON p.academic_year = recent.academic_year AND p.semester = recent.semester
+                    WHERE p.org_id = %s
+                """, (org_id, n_semesters, org_id))
             else:
                 cur.execute("""
-                    SELECT DISTINCT semester, academic_year, org_id
-                    FROM percentage
-                    ORDER BY academic_year DESC, 
-                            FIELD(semester, '2nd', 'Midyear', '1st')  -- custom semester order
-                    LIMIT %s
+                    SELECT p.org_id, p.org_name, p.semester, p.academic_year,p.num_members,p.active_members,p.active_percentage
+                    FROM percentage p
+                    JOIN (
+                        SELECT DISTINCT academic_year, semester
+                        FROM percentage
+                        ORDER BY academic_year DESC,
+                                FIELD(semester, '2nd', 'Midyear', '1st')
+                        LIMIT %s
+                    ) recent ON p.academic_year = recent.academic_year AND p.semester = recent.semester
                 """, (n_semesters,))
 
-            recent_terms = cur.fetchall()
-            if not recent_terms:
-                ctk.CTkLabel(main_area, text="No data found for that range.", text_color="red", font=("Arial", 14)).pack(pady=20)
-                return
-
-            # Fetch all data from those n semesters
-            conditions = []
-            params = []
-            for sem, year, _ in recent_terms:
-                conditions.append("(semester = %s AND academic_year = %s)")
-                params.extend([sem, year])
-
-            query = "SELECT * FROM percentage WHERE " + " OR ".join(conditions)
-            if org_id != 0:
-                query += " AND org_id = %s"
-                params.append(org_id)
-
-            cur.execute(query, tuple(params))
             rows = cur.fetchall()
 
-            display_report(main_area, rows, ["Organization", "Semester", "Number of Members", "Active Members", "Active %", "Inactive %"])
+            display_report(main_area, rows, ["Org ID", "Organization", "Semester", "Academic Year", "Number of Members", "Active Members", "Active %"])
 
         elif table_name == "alumni":
             # 8. Alumni as of a given date
