@@ -363,58 +363,45 @@ def open_president_panel(root, admin, org_name, org_id):
             if org_id != 0:
                 cur.execute("""
                     SELECT
-                        org_id,
-                        SUM(amount) AS total_fees,
+                        f.org_id,
+                        o.org_name,
+                        SUM(f.amount) AS total_fees,
                         SUM(CASE
-                            WHEN status = 'Paid' AND date_paid <= %s THEN amount
+                            WHEN f.status = 'Paid' AND f.date_paid <= %s THEN f.amount
                             ELSE 0
                         END) AS total_paid,
-                        SUM(amount) - SUM(CASE
-                            WHEN status = 'Paid' AND date_paid <= %s THEN amount
+                        SUM(CASE
+                            WHEN (f.status != 'Paid' OR f.date_paid > %s OR f.date_paid IS NULL) THEN f.amount
                             ELSE 0
                         END) AS total_unpaid
-                    FROM (
-                        SELECT *,
-                            CASE
-                                WHEN semester_issued = '1st' THEN DATE(CONCAT(SUBSTRING_INDEX(academic_year_issued, '-', -1), '-01-01'))
-                                WHEN semester_issued = '2nd' THEN DATE(CONCAT(SUBSTRING_INDEX(academic_year_issued, '-', -1), '-07-01'))
-                                ELSE NULL
-                            END AS issued_date
-                        FROM Fee
-                    ) AS f
-                    WHERE issued_date <= %s
-                    AND org_id = %s
-                    GROUP BY org_id
-                """, (as_of_date, as_of_date, as_of_date, org_id))
+                    FROM Fee f
+                    JOIN Organization o ON f.org_id = o.org_id
+                    WHERE f.org_id = %s AND f.due_date <= %s
+                    GROUP BY f.org_id, o.org_name
+                """, (as_of_date, as_of_date, org_id, as_of_date))
             else:
                 cur.execute("""
                     SELECT
-                        org_id,
-                        SUM(amount) AS total_fees,
+                        f.org_id,
+                        o.org_name,
+                        SUM(f.amount) AS total_fees,
                         SUM(CASE
-                            WHEN status = 'Paid' AND date_paid <= %s THEN amount
+                            WHEN f.status = 'Paid' AND f.date_paid <= %s THEN f.amount
                             ELSE 0
                         END) AS total_paid,
-                        SUM(amount) - SUM(CASE
-                            WHEN status = 'Paid' AND date_paid <= %s THEN amount
+                        SUM(CASE
+                            WHEN (f.status != 'Paid' OR f.date_paid > %s OR f.date_paid IS NULL) THEN f.amount
                             ELSE 0
                         END) AS total_unpaid
-                    FROM (
-                        SELECT *,
-                            CASE
-                                WHEN semester_issued = '1st' THEN DATE(CONCAT(SUBSTRING_INDEX(academic_year_issued, '-', -1), '-01-01'))
-                                WHEN semester_issued = '2nd' THEN DATE(CONCAT(SUBSTRING_INDEX(academic_year_issued, '-', -1), '-07-01'))
-                                ELSE NULL
-                            END AS issued_date
-                        FROM Fee
-                    ) AS f
-                    WHERE issued_date <= %s
-                    GROUP BY org_id
+                    FROM Fee f
+                    JOIN Organization o ON f.org_id = o.org_id
+                    WHERE f.due_date <= %s
+                    GROUP BY f.org_id, o.org_name
                 """, (as_of_date, as_of_date, as_of_date))
 
             rows = cur.fetchall()
 
-            display_report(main_area, rows, ["Org ID", "Total Fees", "Total Paid", "Total Unpaid"])
+            display_report(main_area, rows, ["Org ID", "Organization Name", "Total Fees", "Total Paid", "Total Unpaid"])
 
         elif table_name == "highest_debt":
             # Highest debtors for org by semester and academic year
