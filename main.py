@@ -131,6 +131,15 @@ def clear_fields():
     entry_username.delete(0, tk.END)
     entry_password.delete(0, tk.END)
 
+def show_login_panel():
+    # Remove all widgets except main_frame
+    for widget in root.winfo_children():
+        if widget != main_frame:
+            widget.destroy()
+    main_frame.pack(fill="both", expand=True)
+    clear_fields()
+    entry_username.focus()
+
 # ========================== Left Panel ==========================
 left_panel = ctk.CTkFrame(main_frame, corner_radius=20, fg_color="#ffffff", width=500)
 left_panel.pack(side="left", fill="both", expand=True)
