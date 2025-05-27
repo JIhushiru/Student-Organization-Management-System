@@ -224,4 +224,3 @@ INSERT INTO userdata (username, password, user_type, mem_id) VALUES
 -- ('superadmin', '$2b$12$AHxFKMjQBZscM2gl1Resvepco341TN2Q9WztlNcvx0bO2MryKEnmm', 'admin', NULL, NULL),
 -- ('pres', '$2b$12$l.vNxZkiIMlA4zoPrB5YIeo05H54Yj2EFOArknAhy6vZV8YyDPe6e', 'president', 'Statistics Organization', NULL),
 -- ('member', '$2b$12$2NliramtyErVkEl5jnCD4u6WHDXh4nooBhcdqpJqVq9WdYw23ADlC', 'member', 'Computer Science Organization', 1001);
-

@@ -51,21 +51,25 @@ def open_president_panel(root, admin, org_name, org_id):
 
     selected_button = None  # Variable to track the selected button
 
-    def button_click(e, table_name):
+    def button_click(button, table_name): 
         nonlocal selected_button
         if selected_button:
-            selected_button.config(bg=button_bg)  # Reset previous button color
-        e.widget.config(bg=button_selected_bg)  # Set the clicked button to selected color
-        selected_button = e.widget  # Update the selected button
-        load_table(table_name)  # Load the appropriate table
+            selected_button.config(bg=button_bg)  
+        button.config(bg=button_selected_bg)
+        selected_button = button  
+        load_table(table_name) 
 
     # TO CREATE BUTTONS IN THE TOP NAVIGATION BAR
+    nav_buttons = []
     for i, (text, table) in enumerate(buttons):
-        btn = tk.Button(top_nav, text=text, command=lambda t=table: load_table(t), 
+        btn = tk.Button(top_nav, text=text, 
+                        command=lambda t=table, b=None: button_click(b or nav_buttons[buttons.index((text, t))], t), 
                         fg="white", bg=button_bg, font=button_font, relief="flat", bd=0)
         btn.bind("<Enter>", on_enter)
         btn.bind("<Leave>", on_leave)
-        btn.bind("<Button-1>", lambda e, t=table: button_click(e, t))  # Track button click
+
+        nav_buttons.append(btn) 
+        btn.config(command=lambda t=table, b=btn: button_click(b, t))
 
         if i == 0:
             btn.pack(side="left", ipady=10, ipadx=10, padx=(3, 1), pady=2)  # More left margin
@@ -110,6 +114,7 @@ def open_president_panel(root, admin, org_name, org_id):
         for widget in main_area.winfo_children():
             widget.destroy()
         top_nav_title.config(text=org_name)
+        main_area.update_idletasks()
 
         if table_name == "home":
             show_summary_reports_panel(main_area, on_report_click=load_table)
