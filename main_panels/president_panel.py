@@ -481,6 +481,37 @@ def open_president_panel(root, admin, org_name, org_id):
     )
     logout_btn.pack(side="right", ipady=5, ipadx=5, padx=7, pady=7)
 
+    # MY FEES BUTTON
+    def open_my_fees():
+        cur.execute("""
+            SELECT u.mem_id, u.username
+            FROM userdata u
+            JOIN serves s ON u.mem_id = s.mem_id
+            WHERE s.org_id = %s AND s.role = 'President'
+        """, (org_id,))
+        result = cur.fetchone()
+        if result:
+            mem_id, username = result
+            from tables.member_fee_panel import show_member_fee_panel
+            # TO OPEN MEMBER FEE PANEL
+            for widget in root.winfo_children():
+                widget.destroy()
+            show_member_fee_panel(root, mem_id, username, open_president_panel, admin, org_name, org_id)
+        else:
+            messagebox.showerror("Not Found", "No president record found for this organization.")
+
+    my_fees_btn = tk.Button(
+        top_nav,
+        text="My Fees",
+        command=open_my_fees,
+        fg="white",
+        bg="#0078D4",
+        font=button_font,
+        relief="flat",
+        bd=0
+    )
+    my_fees_btn.pack(side="right", ipady=5, ipadx=5, padx=7, pady=7)
+
 # SUMMARY REPORTS PANEL GUI
 def show_summary_reports_panel(root, on_report_click):
     

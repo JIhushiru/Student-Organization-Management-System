@@ -4,8 +4,9 @@ import sys
 from tkinter import ttk, messagebox
 from setup.authentication import hash_password
 from setup.db_connection import get_connection
+from main_panels.president_panel import show_summary_reports_panel
 
-def show_member_fee_panel(root, member_id, username):
+def show_member_fee_panel(root, member_id, username, return_func=None, admin=None, org_name=None, org_id=None):
     # Clear the window
     for widget in root.winfo_children():
         widget.destroy()
@@ -22,6 +23,36 @@ def show_member_fee_panel(root, member_id, username):
     input_text = "Welcome " + username + "!"
     top_nav_title = tk.Label(top_nav, text=input_text, fg="white", bg=primary_color, font=title_font)
     top_nav_title.pack(side="left", padx=15)
+
+    # --- HOME BUTTON (only for presidents) ---
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT COUNT(*) FROM serves WHERE mem_id = %s AND role = 'President'", (member_id,))
+    is_president = cur.fetchone()[0] > 0
+    cur.close()
+    conn.close()
+
+    if is_president:
+        def go_home():
+            for widget in root.winfo_children():
+                widget.destroy()
+            if return_func:
+                return_func(root, admin, org_name, org_id)
+            else:
+                messagebox.showerror("Error", "Cannot return to president panel.")
+
+        home_btn = tk.Button(
+            top_nav,
+            text="Home",
+            command=go_home,
+            fg="white",
+            bg="#009688",
+            font=("Segoe UI", 12, "bold"),
+            relief="flat",
+            bd=0
+        )
+        home_btn.pack(side="right", pady=10, padx=(0, 5), ipady=5, ipadx=5)
+
 
     # --- MAIN AREA FRAME ---
     main_area = tk.Frame(root, bg=main_area_bg)
