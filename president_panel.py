@@ -494,7 +494,7 @@ def show_summary_reports_panel(root, on_report_click):
         widget.destroy()
 
     # HEADER FRAME
-    header_frame = ctk.CTkFrame(root, fg_color="#020325")
+    header_frame = ctk.CTkFrame(root, fg_color="#020325",corner_radius=0)
     header_frame.pack(fill="x", pady=(0, 10))
 
     header_label = ctk.CTkLabel(

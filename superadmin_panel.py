@@ -20,7 +20,7 @@ def open_superadmin_panel(root):
 
     # ------------------- Header ----------------------
     # Header Frame
-    header_frame = ctk.CTkFrame(root, fg_color="#020325")
+    header_frame = ctk.CTkFrame(root, fg_color="#020325", corner_radius=0)
     header_frame.pack(fill="x")
 
     # Header Label

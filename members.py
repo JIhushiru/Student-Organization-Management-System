@@ -343,10 +343,15 @@ def show_member_table(root, cur, org_id):
 
                 username = email.split('@')[0]
                 hashed_password = hash_password(password)
+
+                type_input = 'user'
+                if role == 'President':
+                    type_input = 'President'
+
                 cur.execute("""
-                    INSERT INTO userdata (username, password, , user_type, mem_id)
+                    INSERT INTO userdata (username, password, user_type, mem_id)
                     VALUES (%s, %s, %s, %s)
-                """, (username, (hashed_password), 'user', mem_id))
+                """, (username, (hashed_password), type_input, mem_id))
 
                 # Commit the changes and refresh the table
                 cur.connection.commit()
