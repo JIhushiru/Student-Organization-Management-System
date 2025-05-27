@@ -1,10 +1,10 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 
-# Color scheme and fonts
-primary_color = "#0078D4"
-button_bg = "#00A4EF"
-button_hover_bg = "#0063B1"
+# COLOR SCHEME AND FONTS
+primary_color = "#020325"
+button_bg = "#020325"
+button_hover_bg = "#1a1a40"
 main_area_bg = "#FFFFFF"
 title_font = ("Segoe UI", 11)
 button_font = ("Segoe UI", 10)
@@ -228,6 +228,59 @@ def show_fee_table(root, cur, org_id):
         save_btn = tk.Button(edit_window, text="Save Changes", command=save_changes)
         save_btn.grid(row=len(entries), column=0, columnspan=2, pady=10)
         style_button(save_btn)
+
+    def add_fee():
+        add_window = tk.Toplevel(root)
+        add_window.title("Add Fee")
+
+        mem_id_var = tk.StringVar()
+        org_id_var = tk.StringVar()
+        academic_year_issued_var = tk.StringVar()
+        semester_issued_var = tk.StringVar()
+        due_date_var = tk.StringVar()
+        fee_type_var = tk.StringVar()
+        amount_var = tk.DoubleVar()
+        status_var = tk.StringVar()
+        date_paid_var = tk.StringVar()
+
+        entries = [
+            ("Member ID", mem_id_var),
+            ("Organization ID", org_id_var),
+            ("Academic Year Issued", academic_year_issued_var),
+            ("Semester Issued", semester_issued_var),
+            ("Due Date (YYYY-MM-DD)", due_date_var),
+            ("Fee Type", fee_type_var),
+            ("Amount", amount_var),
+            ("Status", status_var),
+            ("Date Paid (YYYY-MM-DD)", date_paid_var)
+        ]
+
+        for idx, (label, var) in enumerate(entries):
+            tk.Label(add_window, text=label).grid(row=idx, column=0)
+            tk.Entry(add_window, textvariable=var, font=modern_font, bd=1, relief="flat", highlightthickness=1, highlightbackground="black").grid(row=idx, column=1)
+
+        def save_changes():
+            try:
+                cur.execute("""
+                    INSERT INTO FEE(mem_id, org_id, academic_year_issued, semester_issued,
+                    due_date, fee_type, amount, status, date_paid)
+                    VALUES (%s, %s, %s,%s, %s, %s,%s, %s, %s)
+                """, (mem_id_var.get(), org_id_var.get(), academic_year_issued_var.get(),
+                    semester_issued_var.get(), due_date_var.get(), fee_type_var.get(),
+                    amount_var.get(), status_var.get(), date_paid_var.get()))
+                cur.connection.commit()
+                refresh_fee_table(root, cur, {}, "", org_id)
+                add_window.destroy()
+            except Exception as e:
+                messagebox.showerror("Error", str(e))
+
+        save_btn = tk.Button(add_window, text="Save Changes", command=save_changes)
+        save_btn.grid(row=len(entries), column=0, columnspan=2, pady=10)
+        style_button(save_btn)
+
+    add_btn = tk.Button(button_frame, text="Add", command=add_fee)
+    add_btn.pack(side="left", padx=10)
+    style_button(add_btn)
 
     edit_btn = tk.Button(button_frame, text="Edit", command=edit_selected)
     edit_btn.pack(side="left", padx=10)

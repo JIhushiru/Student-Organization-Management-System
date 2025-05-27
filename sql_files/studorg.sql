@@ -23,7 +23,7 @@ type VARCHAR(20) NOT NULL
 );
 
 CREATE TABLE FEE (
-fee_id INT(4) PRIMARY KEY,
+fee_id INT(4) AUTO_INCREMENT PRIMARY KEY,
 mem_id INT,
 org_id INT,
 academic_year_issued VARCHAR(9),
