@@ -1,24 +1,26 @@
 import tkinter as tk
+import os
+import sys
 from tkinter import ttk, messagebox
 from setup.db_connection import get_connection
 
-def show_member_fee_panel(root, member_id):
+def show_member_fee_panel(root, member_id, username):
     # Clear the window
     for widget in root.winfo_children():
         widget.destroy()
 
     # --- COLOR SCHEME & FONTS ---
-    primary_color = "#0078D4"
+    primary_color = "#020325"
     main_area_bg = "#FFFFFF"
     title_font = ("Segoe UI", 16, "bold")
-    button_font = ("Segoe UI", 12)
 
     # --- TOP NAVIGATION BAR ---
-    top_nav = tk.Frame(root, bg=primary_color, height=40)
+    top_nav = tk.Frame(root, bg=primary_color, height=50)
     top_nav.pack_propagate(False)
     top_nav.pack(side="top", fill="x")
-    top_nav_title = tk.Label(top_nav, text="Member Fee Panel", fg="white", bg=primary_color, font=title_font)
-    top_nav_title.pack(side="left", padx=10)
+    input_text = "Welcome " + username + "!"
+    top_nav_title = tk.Label(top_nav, text=input_text, fg="white", bg=primary_color, font=title_font)
+    top_nav_title.pack(side="left", padx=15)
 
     # --- MAIN AREA FRAME ---
     main_area = tk.Frame(root, bg=main_area_bg)
@@ -104,15 +106,10 @@ def show_member_fee_panel(root, member_id):
         cur.close()
         conn.close()
 
-    # Back button
-    back_button = tk.Button(root, text="Back", command=root.destroy)
-    back_button.pack(pady=10)
-
     def logout():
-        for widget in root.winfo_children():
-            widget.destroy()
-        import main
-        main.main_frame.pack(fill="both", expand=True)
+        if messagebox.askyesno("Logout", "Are you sure you want to log out?"):
+            root.destroy()
+            os.execl(sys.executable, sys.executable, *sys.argv)
 
-    logout_button = tk.Button(root, text="Log Out", command=logout, fg="white", bg="#c0392b", font=("Arial", 12, "bold"))
-    logout_button.pack(pady=10)
+    logout_button = tk.Button(top_nav, text="Log Out", command=logout, fg="white", bg="#c0392b", font=("Segoe UI", 12), relief="flat", bd = 0)
+    logout_button.pack(side = "right", pady=10, padx = 10, ipady = 5, ipadx = 5)

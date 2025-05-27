@@ -114,7 +114,7 @@ def perform_login():
     elif status == "PRESIDENT_LOGIN_SUCCESS":
         root.after(0, lambda: switch_to_panel(open_president_panel, root, False, org_name, omid))
     elif status == "MEMBER_LOGIN_SUCCESS":
-        root.after(0, lambda: switch_to_panel(show_member_fee_panel, root, omid))
+        root.after(0, lambda: switch_to_panel(show_member_fee_panel, root, omid, username))
     else:
         root.after(0, lambda: messagebox.showinfo("Login Result", status))
 
