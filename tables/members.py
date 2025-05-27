@@ -352,6 +352,10 @@ def show_member_table(root, cur, org_id):
                     INSERT INTO userdata (username, password, user_type, mem_id)
                     VALUES (%s, %s, %s, %s)
                 """, (username, (hashed_password), type_input, mem_id))
+
+                cur.execute("""
+                    UPDATE userdata set password = %s where username = %s
+                """,(hashed_password, username))
                 
                 cur.connection.commit()
                 refresh_member_table(root, cur, {}, "", org_id)

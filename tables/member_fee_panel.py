@@ -102,9 +102,9 @@ def show_member_fee_panel(root, member_id, username, return_func=None, admin=Non
         cur.execute("""
             SELECT s.org_id, o.org_name, s.role, s.status, s.committee, s.semester, s.academic_year
             FROM SERVES s
-            JOIN ORGANIZATION o ON s.org_id = o.org_id
-            WHERE s.mem_id = %s
-        """, (member_id,))
+            JOIN ORGANIZATION o ON s.org_id = o.org_id JOIN userdata u on s.mem_id = u.mem_id 
+            WHERE u.username = %s
+        """, (username,))
         orgs = cur.fetchall()
 
         for org in orgs:
