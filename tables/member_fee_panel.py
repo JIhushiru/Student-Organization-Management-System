@@ -114,10 +114,11 @@ def show_member_fee_panel(root, member_id, username, return_func=None, admin=Non
         for org in orgs:
             org_id, org_name, role, status, committee, semester, academic_year = org
             cur.execute("""
-                SELECT fee_type, amount, due_date, status
-                FROM FEE
-                WHERE mem_id = %s AND org_id = %s
-            """, (member_id, org_id))
+                SELECT f.fee_type, f.amount, f.due_date, f.status
+                FROM FEE f
+                JOIN userdata u ON f.mem_id = u.mem_id
+                WHERE u.username= %s AND f.org_id = %s
+            """, (username, org_id))
             fees = cur.fetchall()
             for fee in fees:
                 fee_type, amount, due_date, fee_status = fee
