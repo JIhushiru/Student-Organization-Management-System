@@ -76,11 +76,10 @@ def open_president_panel(root, admin, org_name, org_id, name):
         btn.config(command=lambda t=table, b=btn: button_click(b, t))
 
         if i == 0:
-            btn.pack(side="left", ipady=5, ipadx=5, padx=(3, 7), pady=7)  # More left margin
+            btn.pack(side="left", ipady=5, ipadx=5, padx=(3, 7), pady=7)
         else:
             btn.pack(side="left", ipady=5, ipadx=5, padx=7, pady=7)
 
-        # Default selected button is the "Home" button
         if text == "Home":
             selected_button = btn
             btn.config(bg=button_selected_bg)  # Set default button to selected color
@@ -92,7 +91,6 @@ def open_president_panel(root, admin, org_name, org_id, name):
     def display_report(parent, rows, columns):
         tree = ttk.Treeview(parent, columns=columns, show="headings")
 
-        # Create a font object to measure text
         font = tkFont.Font()
 
         for col in columns:
@@ -106,7 +104,6 @@ def open_president_panel(root, admin, org_name, org_id, name):
                 cell_width = font.measure(cell_value)
                 max_width = max(max_width, cell_width)
 
-            # Set column width with padding
             tree.column(col, width=max_width + 20, anchor="center")
 
         for row in rows:
@@ -282,6 +279,7 @@ def open_president_panel(root, admin, org_name, org_id, name):
             display_report(main_area, rows, ["Org ID","Organization","ID", "Name", "Type", "Amount", "Year", "Semester", "Due Date", "Date Paid"])
         
         elif table_name == "percentage":
+            # 7. Percentage of active vs inactive members of a given organization for the last n semesters.
             fields = [
                 {"label": "Number of Semesters", "type": "entry", "default": "2"}
             ]
@@ -360,7 +358,7 @@ def open_president_panel(root, admin, org_name, org_id, name):
 
             as_of_date = values.get("As of Date (YYYY-MM-DD)")
 
-            # Subquery calculates issued_date
+            # CALCULATES PAID OR UNPAID FEES
             if org_id != 0:
                 cur.execute("""
                     SELECT
@@ -405,7 +403,7 @@ def open_president_panel(root, admin, org_name, org_id, name):
             display_report(main_area, rows, ["Org ID", "Organization Name", "Total Fees", "Total Paid", "Total Unpaid"])
 
         elif table_name == "highest_debt":
-            # Highest debtors for org by semester and academic year
+            # 10. Highest debtors for org by semester and academic year
             fields = [
                 {"label": "Semester", "type": "combo", "options": ["1st", "2nd"], "default": "1st"},
                 {"label": "Academic Year", "type": "entry", "default": "2024-2025"}
@@ -590,7 +588,7 @@ def ctk_prompt(root, title, fields):
     popup.resizable(False, False)
     popup.configure(fg_color="white")
 
-    # Center the popup relative to the root window
+    # CENTERS THE DIALOG
     root.update_idletasks()
     popup.update_idletasks()
     x = root.winfo_rootx() + (root.winfo_width() // 2) - 200
