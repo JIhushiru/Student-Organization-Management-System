@@ -13,7 +13,7 @@ BUTTON_TEXT_COLOR = "white"
 TITLE_FONT = ("Arial", 12, "bold")
 ITEMS_PER_PAGE = 16
 
-def open_superadmin_panel(root):
+def open_superadmin_panel(root, username):
     """Load panel for admin"""
     # ----------------- Window -------------------
     root.title("Organization Database Management")
@@ -415,7 +415,7 @@ def open_superadmin_panel(root):
         text_color=BUTTON_TEXT_COLOR).pack(pady=(10, 3), padx=15)
     ctk.CTkButton(sidebar_frame,
         text="All Organizations",
-        command=lambda: open_president_panel(root, True, "All", 0),
+        command=lambda: open_president_panel(root, True, "All", 0, username),
         hover_color="#1a1a40",
         fg_color=BUTTON_COLOR,
         text_color=BUTTON_TEXT_COLOR).pack(pady = 3, padx = 15)
@@ -529,7 +529,7 @@ def open_superadmin_panel(root):
                 text=org_name,
                 font=("Arial", 18, "bold"),
                 command=lambda oid=org_id,
-                oname=org_name: open_president_panel(root, True, oname, oid),
+                oname=org_name: open_president_panel(root, True, oname, oid, username),
                 fg_color=BUTTON_COLOR,
                 text_color=BUTTON_TEXT_COLOR,
                 width=100, height=100,

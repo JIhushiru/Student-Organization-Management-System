@@ -110,9 +110,9 @@ def perform_login():
     status, org_name, omid = send_request("login", username, password)
 
     if status == "ADMIN_LOGIN_SUCCESS":
-        root.after(0, lambda: switch_to_panel(open_superadmin_panel, root))
+        root.after(0, lambda: switch_to_panel(open_superadmin_panel, root, username))
     elif status == "PRESIDENT_LOGIN_SUCCESS":
-        root.after(0, lambda: switch_to_panel(open_president_panel, root, False, org_name, omid))
+        root.after(0, lambda: switch_to_panel(open_president_panel, root, False, org_name, omid, username))
     elif status == "MEMBER_LOGIN_SUCCESS":
         root.after(0, lambda: switch_to_panel(show_member_fee_panel, root, omid, username))
     else:
