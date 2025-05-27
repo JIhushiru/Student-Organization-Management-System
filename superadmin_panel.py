@@ -2,6 +2,8 @@
 from tkinter import messagebox
 import customtkinter as ctk
 import mariadb
+import os
+import sys
 from db_connection import get_connection
 from authentication import hash_password
 from president_panel import open_president_panel
@@ -198,10 +200,9 @@ def open_superadmin_panel(root):
     # ------------------------------ User Functions----------------------------
 
     def logout():
-        import main
-        confirm = messagebox.askyesno("Logout", "Are you sure you want to log out?")
-        if confirm:
+        if messagebox.askyesno("Logout", "Are you sure you want to log out?"):
             root.destroy()
+            os.execl(sys.executable, sys.executable, *sys.argv)
 
     # Add user function
     def show_add_user_form():

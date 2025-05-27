@@ -5,15 +5,10 @@ import tkinter as tk
 from tkinter import messagebox
 import customtkinter as ctk
 
-from db_connection import run_studorg, run_views
 from authentication import authenticate_user
 from superadmin_panel import open_superadmin_panel
 from president_panel import open_president_panel
 from member_fee_panel import show_member_fee_panel
-
-# ========================== DATABASE INIT ==========================
-run_studorg()  # Comment out after 1st run
-run_views()
 
 # ========================== SERVER READY EVENT ==========================
 server_ready_event = threading.Event()

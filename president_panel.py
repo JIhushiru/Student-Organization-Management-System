@@ -1,7 +1,10 @@
 """Imports"""
+import os
+import sys
 import tkinter as tk
 import tkinter.ttk as ttk
 import tkinter.font as tkFont
+from tkinter import messagebox
 import customtkinter as ctk
 
 from db_connection import get_connection
@@ -475,10 +478,9 @@ def open_president_panel(root, admin, org_name, org_id):
 
     # LOG OUT BUTTON
     def logout():
-        for widget in root.winfo_children():
-            widget.destroy()
-        import main
-        main.main_frame.pack(fill="both", expand=True)
+        if messagebox.askyesno("Logout", "Are you sure you want to log out?"):
+            root.destroy()
+            os.execl(sys.executable, sys.executable, *sys.argv)
 
     logout_btn = tk.Button(
         top_nav,

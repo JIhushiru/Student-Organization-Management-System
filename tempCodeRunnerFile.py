@@ -5,26 +5,10 @@ import tkinter as tk
 from tkinter import messagebox
 import customtkinter as ctk
 
-from db_connection import run_studorg, run_views
 from authentication import authenticate_user
 from superadmin_panel import open_superadmin_panel
 from president_panel import open_president_panel
 from member_fee_panel import show_member_fee_panel
-
-# ========================== DATABASE INIT ==========================
-try:
-    with open("init_done.flag", "r") as f:
-        init_done = True
-except FileNotFoundError:
-    init_done = False
-
-if not init_done:
-    run_studorg()  # Run only once
-    run_views()
-    with open("init_done.flag", "w") as f:
-        f.write("done")
-
-
 
 # ========================== SERVER READY EVENT ==========================
 server_ready_event = threading.Event()
@@ -113,13 +97,12 @@ def send_request(action, username, password):
 
 # ========================== LOGIN FUNCTIONS ==========================
 def login():
-    # Get username and password in the main thread
+    threading.Thread(target=perform_login, daemon=True).start()
+
+def perform_login():
     username = entry_username.get()
     password = entry_password.get()
-    # Pass them as arguments to the worker thread
-    threading.Thread(target=perform_login, args=(username, password), daemon=True).start()
 
-def perform_login(username, password):
     if not username or not password:
         root.after(0, lambda: messagebox.showerror("Error", "Please enter username and password."))
         return
@@ -135,7 +118,6 @@ def perform_login(username, password):
     else:
         root.after(0, lambda: messagebox.showinfo("Login Result", status))
 
-
 def switch_to_panel(panel_function, *args):
     main_frame.pack_forget()
     panel_function(*args)
@@ -144,69 +126,14 @@ def clear_fields():
     entry_username.delete(0, tk.END)
     entry_password.delete(0, tk.END)
 
-def show_login_panel(root):
-    # Destroy existing widgets
+def show_login_panel():
+    # Remove all widgets except main_frame
     for widget in root.winfo_children():
-        widget.destroy()
-
-    global main_frame
-    main_frame = ctk.CTkFrame(root, corner_radius=20, fg_color="#ffffff")
+        if widget != main_frame:
+            widget.destroy()
     main_frame.pack(fill="both", expand=True)
-
-    # Rebuild login UI
-    left_panel = ctk.CTkFrame(main_frame, corner_radius=20, fg_color="#ffffff", width=500)
-    left_panel.pack(side="left", fill="both", expand=True)
-
-    login_title = tk.Label(left_panel, text="Login to Your Account", font=("Arial", 24, "bold"), bg="#ffffff")
-    login_title.pack(pady=(70, 70))
-
-    form_frame = tk.Frame(left_panel, bg="#ffffff")
-    form_frame.pack(pady=10)
-
-    tk.Label(form_frame, text="Username", font=("Arial", 12), bg="#ffffff").grid(row=0, column=0, padx=10, pady=5, sticky="w")
-
-    entry_username = ctk.CTkEntry(form_frame, width=300, height=30, font=("Arial", 16))
-    entry_username.grid(row=1, column=0, padx=10, pady=5, ipady=6)
-
-    tk.Label(form_frame, text="Password", font=("Arial", 12), bg="#ffffff").grid(row=2, column=0, padx=10, pady=5, sticky="w")
-
-    entry_password = ctk.CTkEntry(form_frame, width=300, height=30, font=("Arial", 16), show="●")
-    entry_password.grid(row=3, column=0, padx=10, pady=5, ipady=6)
-
-    button_frame = tk.Frame(left_panel, bg="#ffffff")
-    button_frame.pack(pady=20)
-
-    btn_login = ctk.CTkButton(button_frame, text="Log In", command=login, fg_color="#020325", hover_color="#1a1a40")
-    btn_login.grid(row=0, column=0, padx=5, ipadx=10)
-
-    btn_clear = ctk.CTkButton(button_frame, text="Clear", command=clear_fields, fg_color="#020325", hover_color="#1a1a40")
-    btn_clear.grid(row=0, column=1, padx=5, ipadx=10)
-
-    right_panel = ctk.CTkFrame(main_frame, corner_radius=0, fg_color="#020325", width=500)
-    right_panel.pack(side="right", fill="both", expand=True)
-
-    right_content = tk.Frame(right_panel, bg="#020325")
-    right_content.place(relx=0.3, rely=0.4, anchor="center")
-
-    welcome_label = tk.Label(right_content, text="studentary", font=("Palatino Linotype", 60, "bold"), bg="#020325", fg="white")
-    welcome_label.pack(anchor="w", pady=(0, 1), padx=(20, 0))
-
-    welcome_tag = tk.Label(right_content, text="Keeping everything in sync.", font=("Arial", 20, "italic"), bg="#020325", fg="white")
-    welcome_tag.pack(anchor="w", pady=(0, 1), padx=(22, 0))
-
-    message_label = tk.Label(
-        right_content,
-        text="Manage your student organization's data with ease.\nPlease log in to continue.",
-        font=("Arial", 14),
-        bg="#020325",
-        fg="white",
-        justify="left",
-        wraplength=500
-    )
-    message_label.pack(anchor="w", padx=(24, 0))
-
+    clear_fields()
     entry_username.focus()
-
 
 # ========================== Left Panel ==========================
 left_panel = ctk.CTkFrame(main_frame, corner_radius=20, fg_color="#ffffff", width=500)
