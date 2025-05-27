@@ -261,13 +261,21 @@ def show_fee_table(root, cur, org_id):
 
         def save_changes():
             try:
+                # If status is 'Unpaid', set date_paid to None (NULL in DB)
+                status = status_var.get().strip()
+                date_paid = date_paid_var.get().strip()
+                if status.lower() == "unpaid" or not date_paid:
+                    date_paid = None
+
                 cur.execute("""
                     INSERT INTO FEE(mem_id, org_id, academic_year_issued, semester_issued,
                     due_date, fee_type, amount, status, date_paid)
-                    VALUES (%s, %s, %s,%s, %s, %s,%s, %s, %s)
-                """, (mem_id_var.get(), org_id_var.get(), academic_year_issued_var.get(),
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """, (
+                    mem_id_var.get(), org_id_var.get(), academic_year_issued_var.get(),
                     semester_issued_var.get(), due_date_var.get(), fee_type_var.get(),
-                    amount_var.get(), status_var.get(), date_paid_var.get()))
+                    amount_var.get(), status, date_paid
+                ))
                 cur.connection.commit()
                 refresh_fee_table(root, cur, {}, "", org_id)
                 add_window.destroy()

@@ -194,3 +194,18 @@ def show_member_fee_panel(root, member_id, username, return_func=None, admin=Non
     edit_btn = tk.Button(top_nav, text="Edit Account", command=open_edit_account_window, fg="white", bg="#c0392b", font=("Segoe UI", 12), relief="flat", bd=0)
     edit_btn.pack(side="right", pady=10, padx=(0, 5), ipady=5, ipadx=5)
 
+    def refresh_panel():
+        show_member_fee_panel(root, member_id, username, return_func, admin, org_name, org_id)
+
+    refresh_btn = tk.Button(
+        top_nav,
+        text="Refresh",
+        command=refresh_panel,
+        fg="white",
+        bg="#2980b9",
+        font=("Segoe UI", 12, "bold"),
+        relief="flat",
+        bd=0
+    )
+    refresh_btn.pack(side="right", pady=10, padx=(0, 5), ipady=5, ipadx=5)
+
