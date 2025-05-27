@@ -53,7 +53,7 @@ CREATE TABLE SERVES (
 
 CREATE TABLE userdata (
     	user_id INT AUTO_INCREMENT PRIMARY KEY,
-    	username VARCHAR(50) NOT NULL UNIQUE,
+    	username VARCHAR(50) NOT NULL,
     	password VARCHAR(255) NOT NULL,
    		user_type ENUM('admin', 'president', 'user'),
 		mem_id INT,
