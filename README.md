@@ -19,10 +19,12 @@
 
 - **Organization Presidents** can:<br/>
   - Access and manage only their organization<br/>
-  - Create, update, and delete members and fee records within their org<br/><br/>
+  - Create, update, and delete members and fee records within their org<br/>
+  - View their own organization and fee records<br/>
 
 - **Regular Members** (non-presidents) can:<br/>
-  - Only view their own organization and fee records<br/><br/>
+  - Only view their own organization and fee records<br/>
+  - Edit their account (username and password) <br/><br/>
 
 The system is developed using **Python**, **MariaDB**, and features a modern UI using **CustomTkinter**.<br/><br/>
 
@@ -39,10 +41,11 @@ The system is developed using **Python**, **MariaDB**, and features a modern UI 
 ## Setup Instructions<br/>
 1. Open `db_connection.py` in a code editor.<br/>
    On **line 7**, update the password field with your own MariaDB password and save the file.<br/><br/>
-2. Open a terminal and run the main file:<br/>
+2. Open a terminal and run the main file (main.py)<br/>
 3. Use the following credentials to log in as sample users:<br/><br/>
 
-## If database studorg is not yet present, initialize it by running the initialize.py file
+## 
+If database studorg does not exist, initialize it by running the initialize.py file locates in the setup folder
 
 ### Superadmin Account<br/>
 - **Username**: `superadmin`<br/>
@@ -60,5 +63,3 @@ The system is developed using **Python**, **MariaDB**, and features a modern UI 
 
 ### Member Accounts (Non-Presidents)<br/>
 - (Various sample users) / `password123`<br/><br/>
-
- ![Image Alt](https://github.com/JIhushiru/127-project/blob/main/0712-Bad_Practices_in_Database_Design_-_Are_You_Making_These_Mistakes_Dan_Social.png?raw=true)

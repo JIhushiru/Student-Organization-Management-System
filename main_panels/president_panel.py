@@ -17,7 +17,7 @@ conn = get_connection()
 cur = conn.cursor()
 
 # MAIN FUNCTION TO SET UP THE GUI FOR PRESIDENT PANEL
-def open_president_panel(root, admin, org_name, org_id):
+def open_president_panel(root, admin, org_name, org_id, name):
     
     for widget in root.winfo_children():
         widget.destroy()
@@ -449,7 +449,7 @@ def open_president_panel(root, admin, org_name, org_id):
             for widget in root.winfo_children():
                 widget.destroy()
             # Reopen superadmin panel
-            open_superadmin_panel(root)
+            open_superadmin_panel(root, name)
         back_btn = tk.Button(
             top_nav,
             text="Admin Page",
@@ -488,8 +488,8 @@ def open_president_panel(root, admin, org_name, org_id):
             SELECT u.mem_id, u.username
             FROM userdata u
             JOIN serves s ON u.mem_id = s.mem_id
-            WHERE s.org_id = %s AND s.role = 'President'
-        """, (org_id,))
+            WHERE s.org_id = %s AND u.username = %s
+        """, (org_id, name))
         result = cur.fetchone()
         if result:
             mem_id, username = result
@@ -501,17 +501,18 @@ def open_president_panel(root, admin, org_name, org_id):
         else:
             messagebox.showerror("Not Found", "No president record found for this organization.")
 
-    my_fees_btn = tk.Button(
-        top_nav,
-        text="My Fees",
-        command=open_my_fees,
-        fg="white",
-        bg="#0078D4",
-        font=button_font,
-        relief="flat",
-        bd=0
-    )
-    my_fees_btn.pack(side="right", ipady=5, ipadx=5, padx=7, pady=7)
+    if org_id != 0:
+        my_fees_btn = tk.Button(
+            top_nav,
+            text="My Fees",
+            command=open_my_fees,
+            fg="white",
+            bg="#0078D4",
+            font=button_font,
+            relief="flat",
+            bd=0
+        )
+        my_fees_btn.pack(side="right", ipady=5, ipadx=5, padx=7, pady=7)
 
 # SUMMARY REPORTS PANEL GUI
 def show_summary_reports_panel(root, on_report_click):

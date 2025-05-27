@@ -37,7 +37,7 @@ def show_member_fee_panel(root, member_id, username, return_func=None, admin=Non
             for widget in root.winfo_children():
                 widget.destroy()
             if return_func:
-                return_func(root, admin, org_name, org_id)
+                return_func(root, admin, org_name, org_id, username)
             else:
                 messagebox.showerror("Error", "Cannot return to president panel.")
 
@@ -52,6 +52,7 @@ def show_member_fee_panel(root, member_id, username, return_func=None, admin=Non
             bd=0
         )
         home_btn.pack(side="right", pady=10, padx=(0, 5), ipady=5, ipadx=5)
+
 
     # --- MAIN AREA FRAME ---
     main_area = tk.Frame(root, bg=main_area_bg)
