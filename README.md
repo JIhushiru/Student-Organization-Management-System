@@ -42,6 +42,8 @@ The system is developed using **Python**, **MariaDB**, and features a modern UI 
 2. Open a terminal and run the main file:<br/>
 3. Use the following credentials to log in as sample users:<br/><br/>
 
+## If database studorg is not yet present, initialize it by running the initialize.py file
+
 ### Superadmin Account<br/>
 - **Username**: `superadmin`<br/>
 - **Password**: `password`<br/><br/>
